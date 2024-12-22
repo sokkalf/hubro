@@ -11,13 +11,12 @@ import (
 	"github.com/sokkalf/hubro/utils"
 )
 
-
-type Middleware func (*Hubro) func(http.Handler) http.Handler
+type Middleware func(*Hubro) func(http.Handler) http.Handler
 
 type Hubro struct {
-	Mux *http.ServeMux
-	Server *http.Server
-	Templates *template.Template
+	Mux         *http.ServeMux
+	Server      *http.Server
+	Templates   *template.Template
 	middlewares []Middleware
 }
 
@@ -49,7 +48,11 @@ func (h *Hubro) initTemplates() {
 			return "/vendor/" + path
 		},
 	}
-	h.Templates, err = template.New("root").Funcs(funcMap).ParseGlob(filepath.Join("templates", "*.gohtml"))
+
+	h.Templates, err = template.New("root").
+		Funcs(funcMap).
+		ParseGlob(filepath.Join("templates", "*.gohtml"))
+
 	if err != nil {
 		log.Fatalf("Error parsing templates: %v", err)
 	}
