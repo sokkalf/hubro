@@ -12,16 +12,16 @@ import (
 )
 
 
-type middleware func (*Hubro) func(http.Handler) http.Handler
+type Middleware func (*Hubro) func(http.Handler) http.Handler
 
 type Hubro struct {
 	Mux *http.ServeMux
 	Server *http.Server
 	Templates *template.Template
-	middlewares []middleware
+	middlewares []Middleware
 }
 
-func (h *Hubro) Use(m middleware) {
+func (h *Hubro) Use(m Middleware) {
 	h.middlewares = append(h.middlewares, m)
 }
 
