@@ -7,7 +7,8 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
-	"strings"
+
+	"github.com/sokkalf/hubro/utils"
 )
 
 
@@ -59,21 +60,12 @@ func (h *Hubro) initTemplates() {
 
 func (h *Hubro) initStaticFiles() {
 	fs := http.FileServer(http.Dir("./static"))
-	fsWithDirectoryListingDisabled := func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if strings.HasSuffix(r.URL.Path, "/") || r.URL.Path == "" {
-				http.Error(w, "403 directory listing not allowed", http.StatusForbidden)
-				return
-			}
-			h.ServeHTTP(w, r)
-		})
-	}
-	h.Mux.Handle("GET /static/", http.StripPrefix("/static/", fsWithDirectoryListingDisabled(fs)))
+	h.Mux.Handle("GET /static/", http.StripPrefix("/static/", utils.FileServerWithDirectoryListingDisabled(fs)))
 }
 
 func (h *Hubro) initVendorDir(vendorDir fs.FS) {
 	fs := http.FileServer(http.FS(vendorDir))
-	h.Mux.Handle("GET /vendor/", http.StripPrefix("/vendor/", fs))
+	h.Mux.Handle("GET /vendor/", http.StripPrefix("/vendor/", utils.FileServerWithDirectoryListingDisabled(fs)))
 }
 
 func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
