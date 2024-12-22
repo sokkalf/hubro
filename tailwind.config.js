@@ -4,6 +4,8 @@ module.exports = {
 	  "./templates/**/*.gohtml",
 	  "./templates/**/*.html",
 	  "./static/js/**/*.js",
+	  "./**/*.go",
+	  "./*.go",
   ],
   theme: {
     extend: {},
