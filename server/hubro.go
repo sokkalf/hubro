@@ -9,9 +9,28 @@ import (
 	"strings"
 )
 
+type middleware func (*Hubro) func(http.Handler) http.Handler
+
 type Hubro struct {
 	Mux *http.ServeMux
+	Server *http.Server
 	Templates *template.Template
+	middlewares []middleware
+}
+
+func (h *Hubro) Use(m middleware) {
+	h.middlewares = append(h.middlewares, m)
+}
+
+func (h *Hubro) handlerWithMiddlewares(handler http.Handler) http.Handler {
+	for _, m := range h.middlewares {
+		handler = m(h)(handler)
+	}
+	return handler
+}
+
+func (h *Hubro) GetHandler() http.Handler {
+	return h.handlerWithMiddlewares(h.Mux)
 }
 
 func (h *Hubro) initTemplates() {
@@ -58,10 +77,19 @@ func (h *Hubro) pingHandler(w http.ResponseWriter, r *http.Request) {
 func NewHubro() *Hubro {
 	h := &Hubro{
 		Mux: http.NewServeMux(),
+		Server: &http.Server{
+			Addr: ":8080",
+		},
 	}
 	h.Mux.HandleFunc("/", h.indexHandler)
 	h.Mux.HandleFunc("/ping", h.pingHandler)
 	h.initTemplates()
 	h.initStaticFiles()
 	return h
+}
+
+func (h *Hubro) Start() {
+	h.Server.Handler = h.GetHandler()
+	fmt.Println("Listening on http://localhost:8080")
+	http.ListenAndServe(":8080", h.Server.Handler)
 }
