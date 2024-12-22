@@ -64,7 +64,7 @@ func (h *Hubro) initStaticFiles() {
 			h.ServeHTTP(w, r)
 		})
 	}
-	h.Mux.Handle("/static/", http.StripPrefix("/static/", fsWithDirectoryListingDisabled(fs)))
+	h.Mux.Handle("GET /static/", http.StripPrefix("/static/", fsWithDirectoryListingDisabled(fs)))
 }
 
 func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -79,7 +79,7 @@ func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
 // We set an HTMX response header ("HX-Trigger") to demonstrate sending events back to the client.
 func (h *Hubro) pingHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("HX-Trigger", "pongReceived")
-	fmt.Fprintln(w, "Pong!")
+	fmt.Fprintln(w, `<h1 class="text-2xl">Pong!</h1>`)
 }
 
 func NewHubro() *Hubro {
@@ -89,10 +89,10 @@ func NewHubro() *Hubro {
 			Addr: ":8080",
 		},
 	}
-	h.Mux.HandleFunc("/", h.indexHandler)
-	h.Mux.HandleFunc("/ping", h.pingHandler)
 	h.initTemplates()
 	h.initStaticFiles()
+	h.Mux.HandleFunc("GET /", h.indexHandler)
+	h.Mux.HandleFunc("GET /ping", h.pingHandler)
 	return h
 }
 
