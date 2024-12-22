@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Go + HTMX + Tailwind Skeleton</title>
+  <title>{{ title }}</title>
   <!-- Include HTMX from CDN -->
   <script src="https://unpkg.com/htmx.org@1.9.4"></script>
 
   <!-- Include Tailwind CSS from CDN (example version) -->
   <link
-    href="/static/app.css"
+  href="{{ staticPath "app.css" }}"
     rel="stylesheet"
   >
 </head>
 <body class="bg-gray-100 p-4">
   <div class="max-w-md mx-auto bg-white rounded-lg shadow p-6">
-    <h1 class="text-2xl font-bold mb-4">Go + HTMX + Tailwind Skeleton</h1>
+    <h1 class="text-2xl font-bold mb-4">{{ title }}</h1>
 
     <!-- HTMX Trigger Button -->
     <button

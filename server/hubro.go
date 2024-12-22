@@ -35,7 +35,15 @@ func (h *Hubro) GetHandler() http.Handler {
 
 func (h *Hubro) initTemplates() {
 	var err error
-	h.Templates, err = template.ParseGlob(filepath.Join("templates", "*.gohtml"))
+	funcMap := template.FuncMap{
+		"title": func() string {
+			return "Hubro"
+		},
+		"staticPath": func(path string) string {
+			return "/static/" + path
+		},
+	}
+	h.Templates, err = template.New("root").Funcs(funcMap).ParseGlob(filepath.Join("templates", "*.gohtml"))
 	if err != nil {
 		log.Fatalf("Error parsing templates: %v", err)
 	}
