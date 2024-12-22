@@ -17,6 +17,9 @@ func main() {
     if err != nil {
         log.Fatalf("Error parsing templates: %v", err)
     }
+	for _, t := range tmpl.Templates() {
+		fmt.Printf("Parsed template: %s\n", t.Name())
+	}
 
     // Serve static files from the "static" directory at "/static/" path
     fs := http.FileServer(http.Dir("./static"))
