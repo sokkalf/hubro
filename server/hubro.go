@@ -3,11 +3,13 @@ package server
 import (
 	"fmt"
 	"html/template"
+	"io/fs"
 	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
 )
+
 
 type middleware func (*Hubro) func(http.Handler) http.Handler
 
@@ -42,6 +44,9 @@ func (h *Hubro) initTemplates() {
 		"staticPath": func(path string) string {
 			return "/static/" + path
 		},
+		"vendorPath": func(path string) string {
+			return "/vendor/" + path
+		},
 	}
 	h.Templates, err = template.New("root").Funcs(funcMap).ParseGlob(filepath.Join("templates", "*.gohtml"))
 	if err != nil {
@@ -58,13 +63,17 @@ func (h *Hubro) initStaticFiles() {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if strings.HasSuffix(r.URL.Path, "/") || r.URL.Path == "" {
 				http.Error(w, "403 directory listing not allowed", http.StatusForbidden)
-				//fmt.Fprintf(w, "403 directory listing not allowed")
 				return
 			}
 			h.ServeHTTP(w, r)
 		})
 	}
 	h.Mux.Handle("GET /static/", http.StripPrefix("/static/", fsWithDirectoryListingDisabled(fs)))
+}
+
+func (h *Hubro) initVendorDir(vendorDir fs.FS) {
+	fs := http.FileServer(http.FS(vendorDir))
+	h.Mux.Handle("GET /vendor/", http.StripPrefix("/vendor/", fs))
 }
 
 func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +91,7 @@ func (h *Hubro) pingHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, `<h1 class="text-2xl">Pong!</h1>`)
 }
 
-func NewHubro() *Hubro {
+func NewHubro(vendorDir fs.FS) *Hubro {
 	h := &Hubro{
 		Mux: http.NewServeMux(),
 		Server: &http.Server{
@@ -91,6 +100,7 @@ func NewHubro() *Hubro {
 	}
 	h.initTemplates()
 	h.initStaticFiles()
+	h.initVendorDir(vendorDir)
 	h.Mux.HandleFunc("GET /", h.indexHandler)
 	h.Mux.HandleFunc("GET /ping", h.pingHandler)
 	return h

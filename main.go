@@ -1,14 +1,20 @@
 package main
 
 import (
-	"html/template"
+	"embed"
+	"io/fs"
 
 	"github.com/sokkalf/hubro/server"
 )
 
-var tmpl *template.Template
+//go:embed vendor
+var vendorDir embed.FS
 
 func main() {
-	h := server.NewHubro()
+	vendorDir, err := fs.Sub(vendorDir, "vendor")
+	if err != nil {
+		panic(err)
+	}
+	h := server.NewHubro(vendorDir)
 	h.Start()
 }
