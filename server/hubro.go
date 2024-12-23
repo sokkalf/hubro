@@ -113,10 +113,7 @@ func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Render the "index.gohtml" template
-	err := h.Templates.ExecuteTemplate(w, "index.gohtml", nil)
-	if err != nil {
-		http.Error(w, "Failed to render template", http.StatusInternalServerError)
-	}
+	h.Render(w, r, "index.gohtml", nil)
 }
 
 // pingHandler is a simple route that returns "Pong!" text.
@@ -129,18 +126,23 @@ func (h *Hubro) pingHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Hubro) ErrorHandler(w http.ResponseWriter, r *http.Request, status int, message *string) {
 	w.WriteHeader(status)
 	errorTemplate := fmt.Sprintf("errors/%d.gohtml", status)
-	err := h.Templates.ExecuteTemplate(w, errorTemplate, struct {
+	data := struct {
 		Status  int
 		Message *string
 	}{
 		Status:  status,
 		Message: message,
-	})
-	if err != nil {
-		slog.Error("can't render template for error", "status", status, "error", err)
-		fmt.Fprintf(w, "Error %d\n", status)
 	}
+	h.Render(w, r, errorTemplate, data)
 	return
+}
+
+func (h *Hubro) Render(w http.ResponseWriter, r *http.Request, templateName string, data interface{}) {
+	err := h.Templates.ExecuteTemplate(w, templateName, data)
+	if err != nil {
+		slog.Error("can't render template", "template", templateName, "error", err)
+		http.Error(w, "Failed to render template", http.StatusInternalServerError)
+	}
 }
 
 func NewHubro(config Config) *Hubro {
