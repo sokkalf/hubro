@@ -50,6 +50,13 @@ func (h *Hubro) initTemplates() {
 		"vendorPath": func(path string) string {
 			return "/vendor/" + path
 		},
+		"appCSS": func() string {
+			stat, err := os.Stat("static/app.css")
+			if err != nil {
+				log.Fatalf("Error getting file info, CSS file not found : %v", err)
+			}
+			return fmt.Sprintf("/static/app.css?v=%d", stat.ModTime().Unix())
+		},
 		"vendor": func(path string) string {
 			return VendorLibs[path]
 		},
