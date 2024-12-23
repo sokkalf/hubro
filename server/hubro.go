@@ -19,7 +19,10 @@ type Hubro struct {
 	middlewares []Middleware
 }
 
-var VendorLibs map[string]string = map[string]string{"htmx": "/vendor/htmx/htmx.min.js"}
+var VendorLibs map[string]string = map[string]string{
+	"htmx": "/vendor/htmx/htmx.min.js",
+	"alpine.js": "/vendor/alpine.js/alpine.min.js",
+}
 
 func (h *Hubro) Use(m Middleware) {
 	h.middlewares = append(h.middlewares, m)

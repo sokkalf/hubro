@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>{{ title }}</title>
-  <!-- Include HTMX from CDN -->
   <script src="{{ vendor "htmx" }}"></script>
+  <script defer src="{{ vendor "alpine.js" }}"></script>
 
-  <!-- Include Tailwind CSS from CDN (example version) -->
   <link
   href="{{ staticPath "app.css" }}"
     rel="stylesheet"
