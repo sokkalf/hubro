@@ -6,7 +6,8 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
-	"path/filepath"
+	"os"
+	"strings"
 
 	"github.com/sokkalf/hubro/utils"
 )
@@ -38,7 +39,6 @@ func (h *Hubro) GetHandler() http.Handler {
 }
 
 func (h *Hubro) initTemplates() {
-	var err error
 	funcMap := template.FuncMap{
 		"title": func() string {
 			return "Hubro"
@@ -54,16 +54,21 @@ func (h *Hubro) initTemplates() {
 		},
 	}
 
-	h.Templates, err = template.New("root").
-		Funcs(funcMap).
-		ParseGlob(filepath.Join("templates", "*.gohtml"))
-
-	if err != nil {
-		log.Fatalf("Error parsing templates: %v", err)
-	}
-	for _, t := range h.Templates.Templates() {
-		fmt.Printf("Parsed template: %s\n", t.Name())
-	}
+	h.Templates = template.New("root")
+	templateDir := os.DirFS("templates")
+	fs.WalkDir(templateDir, ".", func(path string, d fs.DirEntry, err error) error {
+		if !d.IsDir() && strings.HasSuffix(path, ".gohtml") {
+			name := strings.TrimPrefix(path, "templates/")
+			content, err := fs.ReadFile(templateDir, path)
+			h.Templates, err = h.Templates.New(name).Funcs(funcMap).Parse(string(content))
+			if err != nil {
+				log.Fatalf("Error parsing template: %v", err)
+			} else {
+				fmt.Printf("Parsed template: %s\n", h.Templates.Name())
+			}
+		}
+		return nil
+	})
 }
 
 func (h *Hubro) initStaticFiles() {
