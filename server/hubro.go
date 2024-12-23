@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io/fs"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"strings"
@@ -77,7 +78,7 @@ func (h *Hubro) initTemplates() {
 			if err != nil {
 				log.Fatalf("Error parsing template: %v", err)
 			} else {
-				fmt.Printf("Parsed template: %s\n", h.Templates.Name())
+				slog.Debug("Parsed template", "template", h.Templates.Name())
 			}
 		}
 		return nil
@@ -136,7 +137,7 @@ func (h *Hubro) ErrorHandler(w http.ResponseWriter, r *http.Request, status int,
 		Message: message,
 	})
 	if err != nil {
-		log.Printf("can't render template for error %d\n", status)
+		slog.Error("can't render template for error", "status", status, "error", err)
 		fmt.Fprintf(w, "Error %d\n", status)
 	}
 	return
@@ -160,7 +161,7 @@ func NewHubro(config Config) *Hubro {
 
 func (h *Hubro) Start() {
 	h.Server.Handler = h.GetHandler()
-	fmt.Println("Root path:", h.RootPath)
-	fmt.Println("Listening on http://localhost:8080")
-	http.ListenAndServe(":8080", h.Server.Handler)
+	port := 8080
+	slog.Info("Server started", "port", port, "rootPath", h.RootPath)
+	http.ListenAndServe(fmt.Sprintf(":%d", port), h.Server.Handler)
 }
