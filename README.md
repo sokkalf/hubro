@@ -6,9 +6,14 @@
 
 `setup.sh` will install tailwind.
 
-### Run
+Install Air:
 
 ```
-bin/tailwindcss -o static/app.css
-go run .
+go install github.com/air-verse/air@latest
+```
+
+### Run with Air
+
+```
+air
 ```
