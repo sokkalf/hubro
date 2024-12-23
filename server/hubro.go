@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-
-	"github.com/sokkalf/hubro/utils"
 )
 
 type Middleware func(*Hubro) func(http.Handler) http.Handler
@@ -71,17 +69,31 @@ func (h *Hubro) initTemplates() {
 	})
 }
 
+func (hu *Hubro) fileServerWithDirectoryListingDisabled(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/") || r.URL.Path == "" {
+			hu.ErrorHandler(w, r, http.StatusForbidden)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
 func (h *Hubro) initStaticFiles() {
 	fs := http.FileServer(http.Dir("./static"))
-	h.Mux.Handle("GET /static/", http.StripPrefix("/static/", utils.FileServerWithDirectoryListingDisabled(fs)))
+	h.Mux.Handle("GET /static/", http.StripPrefix("/static/", h.fileServerWithDirectoryListingDisabled(fs)))
 }
 
 func (h *Hubro) initVendorDir(vendorDir fs.FS) {
 	fs := http.FileServer(http.FS(vendorDir))
-	h.Mux.Handle("GET /vendor/", http.StripPrefix("/vendor/", utils.FileServerWithDirectoryListingDisabled(fs)))
+	h.Mux.Handle("GET /vendor/", http.StripPrefix("/vendor/", h.fileServerWithDirectoryListingDisabled(fs)))
 }
 
 func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		h.ErrorHandler(w, r, http.StatusNotFound)
+		return
+	}
 	// Render the "index.gohtml" template
 	err := h.Templates.ExecuteTemplate(w, "index.gohtml", nil)
 	if err != nil {
@@ -94,6 +106,12 @@ func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Hubro) pingHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("HX-Trigger", "pongReceived")
 	fmt.Fprintln(w, `<h1 class="text-2xl">Pong!</h1>`)
+}
+
+func (h *Hubro) ErrorHandler(w http.ResponseWriter, r *http.Request, status int) {
+	w.WriteHeader(status)
+	errorTemplate := fmt.Sprintf("errors/%d.gohtml", status)
+	h.Templates.ExecuteTemplate(w, errorTemplate, nil)
 }
 
 func NewHubro(vendorDir fs.FS) *Hubro {
