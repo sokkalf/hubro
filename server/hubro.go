@@ -16,6 +16,7 @@ type Hubro struct {
 	Mux         *http.ServeMux
 	Server      *http.Server
 	Templates   *template.Template
+	RootPath    string
 	middlewares []Middleware
 }
 
@@ -45,20 +46,20 @@ func (h *Hubro) initTemplates() {
 			return "Hubro"
 		},
 		"staticPath": func(path string) string {
-			return "/static/" + path
+			return strings.TrimSuffix(h.RootPath, "/") + "/static/" + path
 		},
 		"vendorPath": func(path string) string {
-			return "/vendor/" + path
+			return strings.TrimSuffix(h.RootPath, "/") + "/vendor/" + path
 		},
 		"appCSS": func() string {
 			stat, err := os.Stat("static/app.css")
 			if err != nil {
 				log.Fatalf("Error getting file info, CSS file not found : %v", err)
 			}
-			return fmt.Sprintf("/static/app.css?v=%d", stat.ModTime().Unix())
+			return fmt.Sprintf("%s/static/app.css?v=%d", strings.TrimSuffix(h.RootPath, "/"), stat.ModTime().Unix())
 		},
 		"vendor": func(path string) string {
-			return VendorLibs[path]
+			return strings.TrimSuffix(h.RootPath, "/") + VendorLibs[path]
 		},
 	}
 
@@ -137,8 +138,9 @@ func (h *Hubro) ErrorHandler(w http.ResponseWriter, r *http.Request, status int,
 	return
 }
 
-func NewHubro(vendorDir fs.FS) *Hubro {
+func NewHubro(rootPath string, vendorDir fs.FS) *Hubro {
 	h := &Hubro{
+		RootPath: rootPath,
 		Mux: http.NewServeMux(),
 		Server: &http.Server{
 			Addr: ":8080",
@@ -154,6 +156,7 @@ func NewHubro(vendorDir fs.FS) *Hubro {
 
 func (h *Hubro) Start() {
 	h.Server.Handler = h.GetHandler()
+	fmt.Println("Root path:", h.RootPath)
 	fmt.Println("Listening on http://localhost:8080")
 	http.ListenAndServe(":8080", h.Server.Handler)
 }

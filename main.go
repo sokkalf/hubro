@@ -15,6 +15,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	h := server.NewHubro(vendorDir)
+	h := server.NewHubro("/", vendorDir)
 	h.Start()
 }
