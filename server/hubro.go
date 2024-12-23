@@ -75,7 +75,8 @@ func (h *Hubro) initTemplates() {
 func (hu *Hubro) fileServerWithDirectoryListingDisabled(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(r.URL.Path, "/") || r.URL.Path == "" {
-			hu.ErrorHandler(w, r, http.StatusForbidden)
+			msg := "Directory listing is disallowed"
+			hu.ErrorHandler(w, r, http.StatusForbidden, &msg)
 			return
 		}
 		h.ServeHTTP(w, r)
@@ -94,7 +95,8 @@ func (h *Hubro) initVendorDir(vendorDir fs.FS) {
 
 func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		h.ErrorHandler(w, r, http.StatusNotFound)
+		msg := "Page not found"
+		h.ErrorHandler(w, r, http.StatusNotFound, &msg)
 		return
 	}
 	// Render the "index.gohtml" template
@@ -111,10 +113,21 @@ func (h *Hubro) pingHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, `<h1 class="text-2xl">Pong!</h1>`)
 }
 
-func (h *Hubro) ErrorHandler(w http.ResponseWriter, r *http.Request, status int) {
+func (h *Hubro) ErrorHandler(w http.ResponseWriter, r *http.Request, status int, message *string) {
 	w.WriteHeader(status)
 	errorTemplate := fmt.Sprintf("errors/%d.gohtml", status)
-	h.Templates.ExecuteTemplate(w, errorTemplate, nil)
+	err := h.Templates.ExecuteTemplate(w, errorTemplate, struct {
+		Status  int
+		Message string
+	}{
+		Status:  status,
+		Message: *message,
+	})
+	if err != nil {
+		log.Printf("can't render template for error %d\n", status)
+		fmt.Fprintf(w, "Error %d\n", status)
+	}
+	return
 }
 
 func NewHubro(vendorDir fs.FS) *Hubro {
