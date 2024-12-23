@@ -1,1 +1,1 @@
-<p>{{ .Status }} Page not found</p>
+<p>{{ .Status }} {{ if .Message }}{{ .Message }}{{ else }}Page not found{{ end }}</p>

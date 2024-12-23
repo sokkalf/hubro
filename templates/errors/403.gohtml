@@ -1,1 +1,1 @@
-<p>{{ .Status }} Directory listing not allowed</p>
+<p>{{ .Status }} {{ if .Message }}{{ .Message }}{{ else }}Forbidden{{ end }}</p>

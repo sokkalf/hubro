@@ -118,10 +118,10 @@ func (h *Hubro) ErrorHandler(w http.ResponseWriter, r *http.Request, status int,
 	errorTemplate := fmt.Sprintf("errors/%d.gohtml", status)
 	err := h.Templates.ExecuteTemplate(w, errorTemplate, struct {
 		Status  int
-		Message string
+		Message *string
 	}{
 		Status:  status,
-		Message: *message,
+		Message: message,
 	})
 	if err != nil {
 		log.Printf("can't render template for error %d\n", status)
