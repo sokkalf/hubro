@@ -9,6 +9,10 @@ import (
 	"os"
 	"strings"
 )
+type Config struct {
+	RootPath string
+	VendorDir fs.FS
+}
 
 type Middleware func(*Hubro) func(http.Handler) http.Handler
 
@@ -138,9 +142,9 @@ func (h *Hubro) ErrorHandler(w http.ResponseWriter, r *http.Request, status int,
 	return
 }
 
-func NewHubro(rootPath string, vendorDir fs.FS) *Hubro {
+func NewHubro(config Config) *Hubro {
 	h := &Hubro{
-		RootPath: rootPath,
+		RootPath: config.RootPath,
 		Mux: http.NewServeMux(),
 		Server: &http.Server{
 			Addr: ":8080",
@@ -148,7 +152,7 @@ func NewHubro(rootPath string, vendorDir fs.FS) *Hubro {
 	}
 	h.initTemplates()
 	h.initStaticFiles()
-	h.initVendorDir(vendorDir)
+	h.initVendorDir(config.VendorDir)
 	h.Mux.HandleFunc("GET /", h.indexHandler)
 	h.Mux.HandleFunc("GET /ping", h.pingHandler)
 	return h

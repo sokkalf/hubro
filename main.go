@@ -15,6 +15,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	h := server.NewHubro("/", vendorDir)
+	config := server.Config{
+		RootPath:  "/",
+		VendorDir: vendorDir,
+	}
+	h := server.NewHubro(config)
 	h.Start()
 }
