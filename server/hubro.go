@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -10,8 +11,9 @@ import (
 	"os"
 	"strings"
 )
+
 type Config struct {
-	RootPath string
+	RootPath  string
 	VendorDir fs.FS
 }
 
@@ -20,13 +22,14 @@ type Middleware func(*Hubro) func(http.Handler) http.Handler
 type Hubro struct {
 	Mux         *http.ServeMux
 	Server      *http.Server
+	Layouts     *template.Template
 	Templates   *template.Template
 	RootPath    string
 	middlewares []Middleware
 }
 
 var VendorLibs map[string]string = map[string]string{
-	"htmx": "/vendor/htmx/htmx.min.js",
+	"htmx":      "/vendor/htmx/htmx.min.js",
 	"alpine.js": "/vendor/alpine.js/alpine.min.js",
 }
 
@@ -46,7 +49,7 @@ func (h *Hubro) GetHandler() http.Handler {
 }
 
 func (h *Hubro) initTemplates() {
-	funcMap := template.FuncMap{
+	defaultFuncMap := template.FuncMap{
 		"title": func() string {
 			return "Hubro"
 		},
@@ -66,7 +69,26 @@ func (h *Hubro) initTemplates() {
 		"vendor": func(path string) string {
 			return strings.TrimSuffix(h.RootPath, "/") + VendorLibs[path]
 		},
+		"yield": func() (string, error) {
+			return "", fmt.Errorf("yield called unexpectedly.")
+		},
 	}
+
+	h.Layouts = template.New("root_layout")
+	layoutDir := os.DirFS("layouts")
+	fs.WalkDir(layoutDir, ".", func(path string, d fs.DirEntry, err error) error {
+		if !d.IsDir() && strings.HasSuffix(path, ".gohtml") {
+			name := strings.TrimPrefix(path, "layouts/")
+			content, err := fs.ReadFile(layoutDir, path)
+			if err != nil {
+				slog.Error("Error reading layout file", "layout", path, "error", err)
+				panic(err)
+			}
+			h.Layouts = template.Must(h.Layouts.New(name).Funcs(defaultFuncMap).Parse(string(content)))
+			slog.Debug("Parsed layout", "layout", h.Layouts.Name())
+		}
+		return nil
+	})
 
 	h.Templates = template.New("root")
 	templateDir := os.DirFS("templates")
@@ -74,12 +96,12 @@ func (h *Hubro) initTemplates() {
 		if !d.IsDir() && strings.HasSuffix(path, ".gohtml") {
 			name := strings.TrimPrefix(path, "templates/")
 			content, err := fs.ReadFile(templateDir, path)
-			h.Templates, err = h.Templates.New(name).Funcs(funcMap).Parse(string(content))
 			if err != nil {
-				log.Fatalf("Error parsing template: %v", err)
-			} else {
-				slog.Debug("Parsed template", "template", h.Templates.Name())
+				slog.Error("Error reading template file", "template", path, "error", err)
+				panic(err)
 			}
+			h.Templates = template.Must(h.Templates.New(name).Funcs(defaultFuncMap).Parse(string(content)))
+			slog.Debug("Parsed template", "template", h.Templates.Name())
 		}
 		return nil
 	})
@@ -113,7 +135,11 @@ func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Render the "index.gohtml" template
-	h.Render(w, r, "index.gohtml", nil)
+	h.RenderWithLayout(w, r, "app.gohtml", "index.gohtml", nil)
+}
+
+func (h *Hubro) testHandler(w http.ResponseWriter, r *http.Request) {
+	h.RenderWithLayout(w, r, "app.gohtml", "test.gohtml", nil)
 }
 
 // pingHandler is a simple route that returns "Pong!" text.
@@ -137,6 +163,27 @@ func (h *Hubro) ErrorHandler(w http.ResponseWriter, r *http.Request, status int,
 	return
 }
 
+func (h *Hubro) RenderWithLayout(w http.ResponseWriter, r *http.Request, layoutName string, templateName string, data interface{}) {
+	if data == nil {
+		data = map[string]interface{}{}
+	}
+	funcs := template.FuncMap{
+		"yield": func() (template.HTML, error) {
+			buf := bytes.NewBuffer(nil)
+			err := h.Templates.ExecuteTemplate(buf, templateName, data)
+			return template.HTML(buf.String()), err
+		},
+	}
+	layout := h.Layouts.Lookup(layoutName)
+	layoutClone, _ := layout.Clone()
+	layoutClone.Funcs(funcs)
+	err := layoutClone.Execute(w, data)
+	if err != nil {
+		slog.Error("can't render layout", "layout", layoutName, "error", err)
+		http.Error(w, "Failed to render layout", http.StatusInternalServerError)
+	}
+}
+
 func (h *Hubro) Render(w http.ResponseWriter, r *http.Request, templateName string, data interface{}) {
 	err := h.Templates.ExecuteTemplate(w, templateName, data)
 	if err != nil {
@@ -148,7 +195,7 @@ func (h *Hubro) Render(w http.ResponseWriter, r *http.Request, templateName stri
 func NewHubro(config Config) *Hubro {
 	h := &Hubro{
 		RootPath: config.RootPath,
-		Mux: http.NewServeMux(),
+		Mux:      http.NewServeMux(),
 		Server: &http.Server{
 			Addr: ":8080",
 		},
@@ -158,6 +205,7 @@ func NewHubro(config Config) *Hubro {
 	h.initVendorDir(config.VendorDir)
 	h.Mux.HandleFunc("GET /", h.indexHandler)
 	h.Mux.HandleFunc("GET /ping", h.pingHandler)
+	h.Mux.HandleFunc("GET /test", h.testHandler)
 	return h
 }
 

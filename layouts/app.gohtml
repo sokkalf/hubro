@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ title }}</title>
+  <script src="{{ vendor "htmx" }}"></script>
+  <script defer src="{{ vendor "alpine.js" }}"></script>
+
+  <link
+  href="{{ appCSS }}"
+    rel="stylesheet"
+  >
+</head>
+<body class="bg-gray-100 p-4">
+	{{yield}}
+</body>
+</html>
