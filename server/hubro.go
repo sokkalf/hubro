@@ -29,7 +29,7 @@ type Hubro struct {
 }
 
 const (
-	rootLayout = "app.gohtml"
+	rootLayout  = "app.gohtml"
 	errorLayout = "errors/layout.gohtml"
 )
 
