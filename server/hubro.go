@@ -28,6 +28,11 @@ type Hubro struct {
 	middlewares []Middleware
 }
 
+const (
+	rootLayout = "app.gohtml"
+	errorLayout = "errors/layout.gohtml"
+)
+
 var VendorLibs map[string]string = map[string]string{
 	"htmx":      "/vendor/htmx/htmx.min.js",
 	"alpine.js": "/vendor/alpine.js/alpine.min.js",
@@ -135,11 +140,11 @@ func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Render the "index.gohtml" template
-	h.RenderWithLayout(w, r, "app.gohtml", "index.gohtml", nil)
+	h.Render(w, r, "index.gohtml", nil)
 }
 
 func (h *Hubro) testHandler(w http.ResponseWriter, r *http.Request) {
-	h.RenderWithLayout(w, r, "app.gohtml", "test.gohtml", nil)
+	h.Render(w, r, "test.gohtml", nil)
 }
 
 // pingHandler is a simple route that returns "Pong!" text.
@@ -159,7 +164,7 @@ func (h *Hubro) ErrorHandler(w http.ResponseWriter, r *http.Request, status int,
 		Status:  status,
 		Message: message,
 	}
-	h.RenderWithLayout(w, r, "errors/layout.gohtml", errorTemplate, data)
+	h.RenderWithLayout(w, r, errorLayout, errorTemplate, data)
 	return
 }
 
@@ -185,11 +190,7 @@ func (h *Hubro) RenderWithLayout(w http.ResponseWriter, r *http.Request, layoutN
 }
 
 func (h *Hubro) Render(w http.ResponseWriter, r *http.Request, templateName string, data interface{}) {
-	err := h.Templates.ExecuteTemplate(w, templateName, data)
-	if err != nil {
-		slog.Error("can't render template", "template", templateName, "error", err)
-		http.Error(w, "Failed to render template", http.StatusInternalServerError)
-	}
+	h.RenderWithLayout(w, r, rootLayout, templateName, data)
 }
 
 func NewHubro(config Config) *Hubro {
