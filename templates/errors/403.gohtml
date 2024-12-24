@@ -1,7 +1,5 @@
-{{ template "errors/error_header.gohtml" . }}
 <div class="max-w-md mx-auto bg-white rounded-lg shadow p-6">
 	<h1 class="text-4xl py-2 font-semibold">{{ .Status }}</h1>
 	<hr class="py-2">
 	<p>{{ if .Message }}{{ .Message }}{{ else }}Forbidden{{ end }}</p>
 </div>
-{{ template "errors/error_footer.gohtml" . }}

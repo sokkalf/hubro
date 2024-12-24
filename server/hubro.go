@@ -159,7 +159,7 @@ func (h *Hubro) ErrorHandler(w http.ResponseWriter, r *http.Request, status int,
 		Status:  status,
 		Message: message,
 	}
-	h.Render(w, r, errorTemplate, data)
+	h.RenderWithLayout(w, r, "errors/layout.gohtml", errorTemplate, data)
 	return
 }
 
