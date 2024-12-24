@@ -29,8 +29,9 @@ type Hubro struct {
 }
 
 const (
-	rootLayout  = "app.gohtml"
-	errorLayout = "errors/layout.gohtml"
+	rootLayout           = "app.gohtml"
+	errorLayout          = "errors/layout.gohtml"
+	defaultErrorTemplate = "errors/default.gohtml"
 )
 
 var VendorLibs map[string]string = map[string]string{
@@ -163,6 +164,10 @@ func (h *Hubro) ErrorHandler(w http.ResponseWriter, r *http.Request, status int,
 	}{
 		Status:  status,
 		Message: message,
+	}
+	if h.Templates.Lookup(errorTemplate) == nil {
+		slog.Warn("Error template for error status not found", "status", status, "template", errorTemplate)
+		errorTemplate = defaultErrorTemplate
 	}
 	h.RenderWithLayout(w, r, errorLayout, errorTemplate, data)
 	return
