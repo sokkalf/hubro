@@ -66,7 +66,7 @@ func (h *Hubro) initTemplates() {
 			return strings.TrimSuffix(h.RootPath, "/") + "/vendor/" + path
 		},
 		"appCSS": func() string {
-			stat, err := os.Stat("web/static/app.css")
+			stat, err := os.Stat("view/static/app.css")
 			if err != nil {
 				log.Fatalf("Error getting file info, CSS file not found : %v", err)
 			}
@@ -81,7 +81,7 @@ func (h *Hubro) initTemplates() {
 	}
 
 	h.Layouts = template.New("root_layout")
-	layoutDir := os.DirFS("web/layouts")
+	layoutDir := os.DirFS("view/layouts")
 	fs.WalkDir(layoutDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".gohtml") {
 			name := strings.TrimPrefix(path, "layouts/")
@@ -97,7 +97,7 @@ func (h *Hubro) initTemplates() {
 	})
 
 	h.Templates = template.New("root")
-	templateDir := os.DirFS("web/templates")
+	templateDir := os.DirFS("view/templates")
 	fs.WalkDir(templateDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".gohtml") {
 			name := strings.TrimPrefix(path, "templates/")
@@ -125,7 +125,7 @@ func (hu *Hubro) fileServerWithDirectoryListingDisabled(h http.Handler) http.Han
 }
 
 func (h *Hubro) initStaticFiles() {
-	fs := http.FileServer(http.Dir("./web/static"))
+	fs := http.FileServer(http.Dir("./view/static"))
 	h.Mux.Handle("GET /static/", http.StripPrefix("/static/", h.fileServerWithDirectoryListingDisabled(fs)))
 }
 
