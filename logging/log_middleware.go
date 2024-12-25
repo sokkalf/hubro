@@ -9,6 +9,7 @@ import (
 	"github.com/sokkalf/hubro/server"
 )
 
+// Borrowed from https://stackoverflow.com/a/78381482
 type CustomResponseWriter struct {
 	responseWriter http.ResponseWriter
 	StatusCode     int
