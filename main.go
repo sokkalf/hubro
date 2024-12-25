@@ -9,13 +9,13 @@ import (
 	"github.com/sokkalf/hubro/server"
 )
 
-//go:embed assets/vendor
+//go:embed web/assets/vendor
 var vendorDir embed.FS
 
 func main() {
 	logging.InitLogger("development")
 	slog.Info("Starting Hubro")
-	vendorDir, err := fs.Sub(vendorDir, "assets/vendor")
+	vendorDir, err := fs.Sub(vendorDir, "web/assets/vendor")
 	if err != nil {
 		panic(err)
 	}
