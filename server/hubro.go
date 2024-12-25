@@ -12,8 +12,10 @@ import (
 )
 
 type Config struct {
-	RootPath  string
-	VendorDir fs.FS
+	RootPath    string
+	VendorDir   fs.FS
+	TemplateDir fs.FS
+	LayoutDir   fs.FS
 }
 
 type Middleware func(*Hubro) func(http.Handler) http.Handler
@@ -53,13 +55,7 @@ func (h *Hubro) GetHandler() http.Handler {
 	return h.handlerWithMiddlewares(h.Mux)
 }
 
-func (h *Hubro) initTemplates() {
-	assetModificationTime, err := os.Stat("view/static/app.css")
-	if err != nil {
-		slog.Error("Error getting file info, CSS file not found")
-		panic(err)
-	}
-
+func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64) {
 	defaultFuncMap := template.FuncMap{
 		"title": func() string {
 			return "Hubro"
@@ -71,18 +67,18 @@ func (h *Hubro) initTemplates() {
 			return strings.TrimSuffix(h.RootPath, "/") + "/vendor/" + path
 		},
 		"appCSS": func() string {
-			return fmt.Sprintf("%s/static/app.css?v=%d", strings.TrimSuffix(h.RootPath, "/"), assetModificationTime.ModTime().Unix())
+			return fmt.Sprintf("%s/static/app.css?v=%d", strings.TrimSuffix(h.RootPath, "/"), modTime)
 		},
 		"vendor": func(path string) string {
 			return strings.TrimSuffix(h.RootPath, "/") + VendorLibs[path]
 		},
 		"yield": func() (string, error) {
+			// overwritten when rendering with layout
 			return "", fmt.Errorf("yield called unexpectedly.")
 		},
 	}
 
 	h.Layouts = template.New("root_layout")
-	layoutDir := os.DirFS("view/layouts")
 	fs.WalkDir(layoutDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".gohtml") {
 			name := strings.TrimPrefix(path, "layouts/")
@@ -98,7 +94,6 @@ func (h *Hubro) initTemplates() {
 	})
 
 	h.Templates = template.New("root")
-	templateDir := os.DirFS("view/templates")
 	fs.WalkDir(templateDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".gohtml") {
 			name := strings.TrimPrefix(path, "templates/")
@@ -211,7 +206,12 @@ func NewHubro(config Config) *Hubro {
 			Addr: ":8080",
 		},
 	}
-	h.initTemplates()
+	assetModificationTime, err := os.Stat("view/static/app.css")
+	if err != nil {
+		slog.Error("Error getting file info, CSS file not found")
+		panic(err)
+	}
+	h.initTemplates(config.LayoutDir, config.TemplateDir, assetModificationTime.ModTime().Unix())
 	h.initStaticFiles()
 	h.initVendorDir(config.VendorDir)
 	h.Mux.HandleFunc("GET /", h.indexHandler)

@@ -4,6 +4,7 @@ import (
 	"embed"
 	"io/fs"
 	"log/slog"
+	"os"
 
 	"github.com/sokkalf/hubro/logging"
 	"github.com/sokkalf/hubro/server"
@@ -19,9 +20,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	layoutDir := os.DirFS("view/layouts")
+	templateDir := os.DirFS("view/templates")
+
 	config := server.Config{
 		RootPath:  "/",
 		VendorDir: vendorDir,
+		LayoutDir: layoutDir,
+		TemplateDir: templateDir,
 	}
 	h := server.NewHubro(config)
 	h.Use(logging.LogMiddleware())
