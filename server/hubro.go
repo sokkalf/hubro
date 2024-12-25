@@ -185,6 +185,10 @@ func (h *Hubro) RenderWithLayout(w http.ResponseWriter, r *http.Request, layoutN
 		},
 	}
 	layout := h.Layouts.Lookup(layoutName)
+	if layout == nil {
+		slog.Warn("Layout not found, falling back to default layout", "layout", layoutName)
+		layout = h.Layouts.Lookup(rootLayout)
+	}
 	layoutClone, _ := layout.Clone()
 	layoutClone.Funcs(funcs)
 	err := layoutClone.Execute(w, data)
