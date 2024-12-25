@@ -24,5 +24,6 @@ func main() {
 		VendorDir: vendorDir,
 	}
 	h := server.NewHubro(config)
+	h.Use(logging.LogMiddleware())
 	h.Start()
 }
