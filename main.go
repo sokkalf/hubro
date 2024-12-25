@@ -1,8 +1,6 @@
 package main
 
 import (
-	"embed"
-	"io/fs"
 	"log/slog"
 	"os"
 
@@ -10,16 +8,10 @@ import (
 	"github.com/sokkalf/hubro/server"
 )
 
-//go:embed view/assets/vendor
-var vendorDir embed.FS
-
 func main() {
 	logging.InitLogger("development")
 	slog.Info("Starting Hubro 🦉")
-	vendorDir, err := fs.Sub(vendorDir, "view/assets/vendor")
-	if err != nil {
-		panic(err)
-	}
+	vendorDir := os.DirFS("view/assets/vendor")
 	layoutDir := os.DirFS("view/layouts")
 	templateDir := os.DirFS("view/templates")
 
