@@ -4,7 +4,7 @@
 
 ### Install tailwind
 
-`setup.sh` will install tailwind.
+`scripts/setup.sh` will install tailwind.
 
 Install Air:
 
