@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -55,6 +54,12 @@ func (h *Hubro) GetHandler() http.Handler {
 }
 
 func (h *Hubro) initTemplates() {
+	assetModificationTime, err := os.Stat("view/static/app.css")
+	if err != nil {
+		slog.Error("Error getting file info, CSS file not found")
+		panic(err)
+	}
+
 	defaultFuncMap := template.FuncMap{
 		"title": func() string {
 			return "Hubro"
@@ -66,11 +71,7 @@ func (h *Hubro) initTemplates() {
 			return strings.TrimSuffix(h.RootPath, "/") + "/vendor/" + path
 		},
 		"appCSS": func() string {
-			stat, err := os.Stat("view/static/app.css")
-			if err != nil {
-				log.Fatalf("Error getting file info, CSS file not found : %v", err)
-			}
-			return fmt.Sprintf("%s/static/app.css?v=%d", strings.TrimSuffix(h.RootPath, "/"), stat.ModTime().Unix())
+			return fmt.Sprintf("%s/static/app.css?v=%d", strings.TrimSuffix(h.RootPath, "/"), assetModificationTime.ModTime().Unix())
 		},
 		"vendor": func(path string) string {
 			return strings.TrimSuffix(h.RootPath, "/") + VendorLibs[path]
