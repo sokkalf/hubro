@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/sokkalf/hubro/logging"
+	"github.com/sokkalf/hubro/modules/page"
 	"github.com/sokkalf/hubro/server"
 )
 
@@ -25,5 +26,6 @@ func main() {
 	}
 	h := server.NewHubro(config)
 	h.Use(logging.LogMiddleware())
+	h.AddModule("/page", page.Register)
 	h.Start()
 }

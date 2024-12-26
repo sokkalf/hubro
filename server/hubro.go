@@ -32,6 +32,8 @@ type Hubro struct {
 	publicDir   fs.FS
 }
 
+type HubroModule func(*Hubro, *http.ServeMux)
+
 const (
 	rootLayout           = "app.gohtml"
 	errorLayout          = "errors/layout.gohtml"
@@ -52,6 +54,10 @@ func (h *Hubro) Use(m Middleware) {
 	h.middlewares = append(h.middlewares, m)
 }
 
+func (h *Hubro) AddModule(prefix string, module HubroModule) {
+	h.createSubMux(prefix, module)
+}
+
 func (h *Hubro) handlerWithMiddlewares(handler http.Handler) http.Handler {
 	for _, m := range h.middlewares {
 		handler = m(h)(handler)
@@ -61,6 +67,13 @@ func (h *Hubro) handlerWithMiddlewares(handler http.Handler) http.Handler {
 
 func (h *Hubro) GetHandler() http.Handler {
 	return h.handlerWithMiddlewares(h.Mux)
+}
+
+func (h *Hubro) createSubMux(prefix string, module HubroModule) *http.ServeMux {
+	mux := http.NewServeMux()
+	module(h, mux)
+	h.Mux.Handle(prefix+"/", http.StripPrefix(prefix, mux))
+	return mux
 }
 
 func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64) {
@@ -236,7 +249,7 @@ func NewHubro(config Config) *Hubro {
 	h.initTemplates(config.LayoutDir, config.TemplateDir, assetModificationTime.ModTime().Unix())
 	h.initStaticFiles()
 	h.initVendorDir(config.VendorDir)
-	h.Mux.HandleFunc("GET /", h.indexHandler)
+	h.Mux.HandleFunc("/", h.indexHandler)
 	h.Mux.HandleFunc("GET /ping", h.pingHandler)
 	h.Mux.HandleFunc("GET /test", h.testHandler)
 	return h
