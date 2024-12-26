@@ -16,6 +16,7 @@ type Config struct {
 	VendorDir   fs.FS
 	TemplateDir fs.FS
 	LayoutDir   fs.FS
+	PublicDir   fs.FS
 }
 
 type Middleware func(*Hubro) func(http.Handler) http.Handler
@@ -27,6 +28,7 @@ type Hubro struct {
 	Templates   *template.Template
 	RootPath    string
 	middlewares []Middleware
+	publicDir   fs.FS
 }
 
 const (
@@ -131,13 +133,21 @@ func (h *Hubro) initVendorDir(vendorDir fs.FS) {
 }
 
 func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		msg := "Page not found"
-		h.ErrorHandler(w, r, http.StatusNotFound, &msg)
-		return
+	if r.URL.Path == "/" {
+		// Render the "index.gohtml" template
+		h.Render(w, r, "index.gohtml", nil)
+	} else {
+		fs := http.FS(h.publicDir)
+		file, err := fs.Open(r.URL.Path)
+		if err != nil {
+			msg := "Page not found"
+			h.ErrorHandler(w, r, http.StatusNotFound, &msg)
+			return
+		} else {
+			file.Close()
+			http.FileServer(fs).ServeHTTP(w, r)
+		}
 	}
-	// Render the "index.gohtml" template
-	h.Render(w, r, "index.gohtml", nil)
 }
 
 func (h *Hubro) testHandler(w http.ResponseWriter, r *http.Request) {
@@ -205,6 +215,7 @@ func NewHubro(config Config) *Hubro {
 		Server: &http.Server{
 			Addr: ":8080",
 		},
+		publicDir: config.PublicDir,
 	}
 	assetModificationTime, err := os.Stat("view/static/app.css")
 	if err != nil {
