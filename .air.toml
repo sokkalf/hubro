@@ -6,7 +6,7 @@ tmp_dir = "tmp"
 [build]
   bin = "./tmp/hubro"
   cmd = "go build -o ./tmp/hubro . && bin/tailwindcss -c view/tailwind.config.js -i view/assets/css/app.css -o view/static/app.css"
-  delay = 1000
+  delay = 100
   include_ext = ["go", "gohtml", "json"]
   exclude_dir = ["tmp", "view/assets/vendor", "view/static", "bin"]
   exclude_regex = ["\\.?#.+", ".+~"]
