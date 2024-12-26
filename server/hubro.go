@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 )
 
@@ -36,6 +37,11 @@ const (
 	errorLayout          = "errors/layout.gohtml"
 	defaultErrorTemplate = "errors/default.gohtml"
 )
+
+var publicFileWhiteList = []string{"favicon.ico", "robots.txt", "sitemap.xml", "manifest.json", "apple-touch-icon.png",
+	"security.txt", "android-chrome-192x192.png", "android-chrome-512x512.png", "browserconfig.xml", "site.webmanifest",
+	"favicon.png", "favicon-16x16.png", "favicon-32x32.png", "favicon-96x96.png", "favicon-192x192.png", "favicon-512x512.png",
+	"cache_manifest.json"}
 
 var VendorLibs map[string]string = map[string]string{
 	"htmx":      "/vendor/htmx/htmx.min.js",
@@ -138,6 +144,11 @@ func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
 		h.Render(w, r, "index.gohtml", nil)
 	} else {
 		fs := http.FS(h.publicDir)
+		if !slices.Contains(publicFileWhiteList, strings.TrimPrefix(r.URL.Path, "/")) {
+			msg := "Page not found"
+			h.ErrorHandler(w, r, http.StatusNotFound, &msg)
+			return
+		}
 		file, err := fs.Open(r.URL.Path)
 		if err != nil {
 			msg := "Page not found"
