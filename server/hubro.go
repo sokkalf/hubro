@@ -82,6 +82,9 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 		"appTitle": func() string {
 			return "Hubro"
 		},
+		"rootPath": func() string {
+			return strings.TrimSuffix(h.RootPath, "/")
+		},
 		"staticPath": func(path string) string {
 			return strings.TrimSuffix(h.RootPath, "/") + "/static/" + path
 		},
@@ -222,7 +225,6 @@ func (h *Hubro) RenderWithLayout(w http.ResponseWriter, r *http.Request, layoutN
 		},
 		"listPages": func() []IndexEntry {
 			entries := GetIndex("pages")
-			fmt.Println(entries)
 			if entries == nil {
 				return nil
 			} else {

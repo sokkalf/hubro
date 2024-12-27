@@ -1,0 +1,13 @@
+<div class="topnav bg-indigo-950">
+	<a href="/">Home</a>
+	{{ range listPages }}
+		{{ if not .Visible }}
+			{{ continue }}
+		{{ end }}
+		<a href="{{ rootPath }}{{ .Path }}">{{ .Title }}</a>
+	{{ end }}
+	<!-- Stuff on the right side -->
+	<div class="topnav-right h-6">
+	  <p class="bg-blue-200 rounded-full px-2 py-1">v1.2.3</p>
+	</div>
+</div>
