@@ -16,6 +16,7 @@ func main() {
 	layoutDir := os.DirFS("view/layouts")
 	templateDir := os.DirFS("view/templates")
 	publicDir := os.DirFS("view/public")
+	pagesDir := os.DirFS("pages")
 
 	config := server.Config{
 		RootPath:  "/",
@@ -23,6 +24,7 @@ func main() {
 		LayoutDir: layoutDir,
 		TemplateDir: templateDir,
 		PublicDir: publicDir,
+		PagesDir: pagesDir,
 	}
 	h := server.NewHubro(config)
 	h.Use(logging.LogMiddleware())

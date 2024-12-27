@@ -18,6 +18,7 @@ type Config struct {
 	TemplateDir fs.FS
 	LayoutDir   fs.FS
 	PublicDir   fs.FS
+	PagesDir    fs.FS
 }
 
 type Middleware func(*Hubro) func(http.Handler) http.Handler
@@ -27,6 +28,7 @@ type Hubro struct {
 	Server      *http.Server
 	Layouts     *template.Template
 	Templates   *template.Template
+	PagesDir    fs.FS
 	RootPath    string
 	middlewares []Middleware
 	publicDir   fs.FS
@@ -239,6 +241,7 @@ func NewHubro(config Config) *Hubro {
 		Server: &http.Server{
 			Addr: ":8080",
 		},
+		PagesDir:  config.PagesDir,
 		publicDir: config.PublicDir,
 	}
 	assetModificationTime, err := os.Stat("view/static/app.css")
