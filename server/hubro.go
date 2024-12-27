@@ -237,6 +237,7 @@ func (h *Hubro) RenderWithLayout(w http.ResponseWriter, r *http.Request, layoutN
 				return []IndexEntry{}
 			} else {
 				// sort entries by sort order
+				// make a copy of the entries slice to avoid modifying the original
 				copiedEntries := make([]IndexEntry, len(entries.Entries))
 				copy(copiedEntries, entries.Entries)
 				sort.Slice(copiedEntries, func(i, j int) bool {
