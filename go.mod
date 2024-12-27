@@ -8,4 +8,8 @@ require (
 	github.com/yuin/goldmark-meta v1.1.0
 )
 
-require gopkg.in/yaml.v2 v2.3.0 // indirect
+require (
+	github.com/gosimple/slug v1.15.0 // indirect
+	github.com/gosimple/unidecode v1.0.1 // indirect
+	gopkg.in/yaml.v2 v2.3.0 // indirect
+)

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gosimple/slug"
 	"github.com/yuin/goldmark"
 	meta "github.com/yuin/goldmark-meta"
 	"github.com/yuin/goldmark/extension"
@@ -19,7 +20,7 @@ import (
 )
 
 func slugify(s string) string {
-	return strings.ReplaceAll(strings.ToLower(s), " ", "-")
+	return slug.Make(s)
 }
 
 func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
