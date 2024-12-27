@@ -29,7 +29,17 @@ func main() {
 	}
 	h := server.NewHubro(config)
 	h.Use(logging.LogMiddleware())
-	h.AddModule("/page", page.Register, struct{FilesDir fs.FS}{FilesDir: pagesDir})
-	h.AddModule("/blog", page.Register, struct{FilesDir fs.FS}{FilesDir: blogDir})
+	pageIndex := page.NewIndex(h.RootPath + "page")
+	h.AddModule("/page", page.Register,
+		struct{
+			FilesDir fs.FS
+			IndexFunc func(page.IndexEntry)
+		}{FilesDir: pagesDir, IndexFunc: pageIndex.AddEntry})
+	blogIndex := page.NewIndex(h.RootPath + "blog")
+	h.AddModule("/blog", page.Register,
+		struct{
+			FilesDir fs.FS
+			IndexFunc func(page.IndexEntry)
+		}{FilesDir: blogDir, IndexFunc: blogIndex.AddEntry})
 	h.Start()
 }

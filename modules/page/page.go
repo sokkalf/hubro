@@ -20,14 +20,39 @@ import (
 	"github.com/sokkalf/hubro/server"
 )
 
+type IndexEntry struct {
+	Title string `json:"title"`
+	Author string `json:"author"`
+	Path string `json:"path"`
+	Date time.Time `json:"date"`
+	SortOrder int `json:"sortOrder"`
+	Metadata map[string]interface{} `json:"metadata"`
+	Visible bool `json:"visible"`
+}
+
+type Index struct {
+	Entries []IndexEntry `json:"entries"`
+	rootPath string
+}
+
+func NewIndex(rootPath string) *Index {
+	return &Index{rootPath: rootPath}
+}
+
+func (i *Index) AddEntry(e IndexEntry) {
+	e.Path = i.rootPath + e.Path
+	i.Entries = append(i.Entries, e)
+}
+
 func slugify(s string) string {
 	return slug.Make(s)
 }
 
-func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, filesDir fs.FS) {
+func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, filesDir fs.FS, indexFunc func(IndexEntry)) {
 	var handlerPath string
 	var title string
 	var author string
+	var visible bool = true
 	var metaData map[string]interface{}
 	var buf bytes.Buffer
 	var context parser.Context
@@ -53,17 +78,29 @@ func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path strin
 	if a, ok := metaData["author"]; ok {
 		author = a.(string)
 	}
+	if v, ok := metaData["visible"]; ok {
+		visible = v.(bool)
+	}
 
 	handlerPath = "/" + slugify(title)
+	indexFunc(IndexEntry{
+		Title: title,
+		Author: author,
+		Visible: visible,
+		Metadata: metaData,
+		Path: handlerPath,
+	})
 	mux.HandleFunc(handlerPath, func(w http.ResponseWriter, r *http.Request) {
 		h.Render(w, r, "page.gohtml", struct {
 			Title string
 			Author string
+			Visible bool
 			Body  template.HTML
 			Metadata map[string]interface{}
 		}{
 			Title: title,
 			Author: author,
+			Visible: visible,
 			Body:  template.HTML(buf.String()),
 			Metadata: metaData,
 		})
@@ -75,7 +112,12 @@ func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path strin
 func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
 	start := time.Now()
 	var wg sync.WaitGroup
-	filesDir := options.(struct{ FilesDir fs.FS }).FilesDir
+	opts := options.(struct{
+		FilesDir fs.FS
+		IndexFunc func(IndexEntry)
+	})
+	filesDir := opts.FilesDir
+	indexFunc := opts.IndexFunc
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM, meta.Meta),
 		goldmark.WithParserOptions(parser.WithAutoHeadingID()),
@@ -86,7 +128,7 @@ func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				parse(h, mux, md, path, filesDir)
+				parse(h, mux, md, path, filesDir, indexFunc)
 			}()
 		}
 		return nil
