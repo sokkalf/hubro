@@ -20,35 +20,11 @@ import (
 	"github.com/sokkalf/hubro/server"
 )
 
-type IndexEntry struct {
-	Title string `json:"title"`
-	Author string `json:"author"`
-	Path string `json:"path"`
-	Date time.Time `json:"date"`
-	SortOrder int `json:"sortOrder"`
-	Metadata map[string]interface{} `json:"metadata"`
-	Visible bool `json:"visible"`
-}
-
-type Index struct {
-	Entries []IndexEntry `json:"entries"`
-	rootPath string
-}
-
-func NewIndex(rootPath string) *Index {
-	return &Index{rootPath: rootPath}
-}
-
-func (i *Index) AddEntry(e IndexEntry) {
-	e.Path = i.rootPath + e.Path
-	i.Entries = append(i.Entries, e)
-}
-
 func slugify(s string) string {
 	return slug.Make(s)
 }
 
-func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, filesDir fs.FS, indexFunc func(IndexEntry)) {
+func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, filesDir fs.FS, indexFunc func(server.IndexEntry)) {
 	var handlerPath string
 	var title string
 	var author string
@@ -83,7 +59,7 @@ func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path strin
 	}
 
 	handlerPath = "/" + slugify(title)
-	indexFunc(IndexEntry{
+	indexFunc(server.IndexEntry{
 		Title: title,
 		Author: author,
 		Visible: visible,
@@ -114,7 +90,7 @@ func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
 	var wg sync.WaitGroup
 	opts := options.(struct{
 		FilesDir fs.FS
-		IndexFunc func(IndexEntry)
+		IndexFunc func(server.IndexEntry)
 	})
 	filesDir := opts.FilesDir
 	indexFunc := opts.IndexFunc

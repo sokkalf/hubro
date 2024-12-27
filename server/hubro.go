@@ -24,13 +24,13 @@ type Config struct {
 type Middleware func(*Hubro) func(http.Handler) http.Handler
 
 type Hubro struct {
-	Mux         *http.ServeMux
-	Server      *http.Server
-	Layouts     *template.Template
-	Templates   *template.Template
-	RootPath    string
-	middlewares []Middleware
-	publicDir   fs.FS
+	Mux          *http.ServeMux
+	Server       *http.Server
+	Layouts      *template.Template
+	Templates    *template.Template
+	RootPath     string
+	middlewares  []Middleware
+	publicDir    fs.FS
 }
 
 type HubroModule func(*Hubro, *http.ServeMux, interface{})
@@ -97,6 +97,10 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 		"yield": func() (string, error) {
 			// overwritten when rendering with layout
 			return "", fmt.Errorf("yield called unexpectedly.")
+		},
+		"listPages": func() []IndexEntry {
+			slog.Warn("listPages called unexpectedly")
+			return nil
 		},
 	}
 
@@ -216,6 +220,15 @@ func (h *Hubro) RenderWithLayout(w http.ResponseWriter, r *http.Request, layoutN
 			err := h.Templates.ExecuteTemplate(buf, templateName, data)
 			return template.HTML(buf.String()), err
 		},
+		"listPages": func() []IndexEntry {
+			entries := GetIndex("pages")
+			fmt.Println(entries)
+			if entries == nil {
+				return nil
+			} else {
+				return entries.Entries
+			}
+		},
 	}
 	layout := h.Layouts.Lookup(layoutName)
 	if layout == nil {
@@ -242,7 +255,7 @@ func NewHubro(config Config) *Hubro {
 		Server: &http.Server{
 			Addr: ":8080",
 		},
-		publicDir: config.PublicDir,
+		publicDir:   config.PublicDir,
 	}
 	assetModificationTime, err := os.Stat("view/static/app.css")
 	if err != nil {
