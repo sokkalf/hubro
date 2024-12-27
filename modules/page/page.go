@@ -29,6 +29,7 @@ func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path strin
 	var title string
 	var author string
 	var visible bool = true
+	var sortOrder int
 	var metaData map[string]interface{}
 	var buf bytes.Buffer
 	var context parser.Context
@@ -57,6 +58,11 @@ func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path strin
 	if v, ok := metaData["visible"]; ok {
 		visible = v.(bool)
 	}
+	if s, ok := metaData["sortOrder"]; ok {
+		sortOrder = s.(int)
+	} else {
+		sortOrder = 0
+	}
 
 	handlerPath = "/" + slugify(title)
 	indexFunc(server.IndexEntry{
@@ -65,6 +71,7 @@ func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path strin
 		Visible: visible,
 		Metadata: metaData,
 		Path: handlerPath,
+		SortOrder: sortOrder,
 	})
 	mux.HandleFunc(handlerPath, func(w http.ResponseWriter, r *http.Request) {
 		h.Render(w, r, "page.gohtml", struct {

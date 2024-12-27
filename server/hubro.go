@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"slices"
+	"sort"
 	"strings"
 	"time"
 )
@@ -227,9 +228,15 @@ func (h *Hubro) RenderWithLayout(w http.ResponseWriter, r *http.Request, layoutN
 		"listPages": func() []IndexEntry {
 			entries := GetIndex("pages")
 			if entries == nil {
-				return nil
+				return []IndexEntry{}
 			} else {
-				return entries.Entries
+				// sort entries by sort order
+				copiedEntries := make([]IndexEntry, len(entries.Entries))
+				copy(copiedEntries, entries.Entries)
+				sort.Slice(copiedEntries, func(i, j int) bool {
+					return copiedEntries[i].SortOrder < copiedEntries[j].SortOrder
+				})
+				return copiedEntries
 			}
 		},
 	}
