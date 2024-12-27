@@ -18,6 +18,10 @@ import (
 	"github.com/sokkalf/hubro/server"
 )
 
+func slugify(s string) string {
+	return strings.ReplaceAll(strings.ToLower(s), " ", "-")
+}
+
 func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
 	filesDir := options.(struct{ FilesDir fs.FS }).FilesDir
 	md := goldmark.New(
@@ -39,7 +43,7 @@ func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
 				slog.Error("Error converting markdown", "page", path, "error", err)
 				goto next
 			}
-			path := "/" + name
+			path := "/" + slugify(name)
 			mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 				h.Render(w, r, "page.gohtml", struct {
 					Title string
