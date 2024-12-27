@@ -40,21 +40,29 @@ func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
 				goto next
 			}
 			var buf bytes.Buffer
-			if err := md.Convert(content, &buf); err != nil {
+			context := parser.NewContext()
+			if err := md.Convert(content, &buf, parser.WithContext(context)); err != nil {
 				slog.Error("Error converting markdown", "page", path, "error", err)
 				goto next
 			}
-			path := "/" + slugify(name)
+			metaData := meta.Get(context)
+			var title string
+			if t, ok := metaData["title"]; ok {
+				title = t.(string)
+			} else {
+				title = name
+			}
+			path := "/" + slugify(title)
 			mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 				h.Render(w, r, "page.gohtml", struct {
 					Title string
 					Body  template.HTML
 				}{
-					Title: name,
+					Title: title,
 					Body:  template.HTML(buf.String()),
 				})
 			})
-			slog.Debug("Parsed page", "page", name, "path", path, "duration", time.Since(start))
+			slog.Debug("Parsed page", "page", name, "title", title, "path", path, "duration", time.Since(start))
 		}
 	next:
 		return nil
