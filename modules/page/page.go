@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gosimple/slug"
@@ -63,6 +64,8 @@ func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path strin
 }
 
 func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
+	start := time.Now()
+	var wg sync.WaitGroup
 	filesDir := options.(struct{ FilesDir fs.FS }).FilesDir
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM, meta.Meta),
@@ -71,7 +74,11 @@ func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
 	)
 	fs.WalkDir(filesDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".md") {
-			go parse(h, mux, md, path, filesDir)
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				parse(h, mux, md, path, filesDir)
+			}()
 		}
 		return nil
 	})
@@ -80,4 +87,6 @@ func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
 		h.ErrorHandler(w, r, http.StatusNotFound, &msg)
 		return
 	})
+	wg.Wait()
+	slog.Debug("Registered pages", "duration", time.Since(start))
 }
