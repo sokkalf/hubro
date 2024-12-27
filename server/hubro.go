@@ -68,6 +68,7 @@ func (h *Hubro) handlerWithMiddlewares(handler http.Handler) http.Handler {
 	return handler
 }
 
+// GetHandler returns the http.Handler for the Hubro instance with all middlewares applied.
 func (h *Hubro) GetHandler() http.Handler {
 	return h.handlerWithMiddlewares(h.Mux)
 }
