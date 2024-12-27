@@ -27,6 +27,7 @@ func slugify(s string) string {
 func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, filesDir fs.FS) {
 	var handlerPath string
 	var title string
+	var author string
 	var metaData map[string]interface{}
 	var buf bytes.Buffer
 	var context parser.Context
@@ -49,14 +50,22 @@ func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path strin
 	} else {
 		title = name
 	}
+	if a, ok := metaData["author"]; ok {
+		author = a.(string)
+	}
+
 	handlerPath = "/" + slugify(title)
 	mux.HandleFunc(handlerPath, func(w http.ResponseWriter, r *http.Request) {
 		h.Render(w, r, "page.gohtml", struct {
 			Title string
+			Author string
 			Body  template.HTML
+			Metadata map[string]interface{}
 		}{
 			Title: title,
+			Author: author,
 			Body:  template.HTML(buf.String()),
+			Metadata: metaData,
 		})
 	})
 	slog.Debug("Parsed page", "page", name, "title", title, "path", handlerPath, "duration", time.Since(start))
