@@ -18,7 +18,6 @@ type Config struct {
 	TemplateDir fs.FS
 	LayoutDir   fs.FS
 	PublicDir   fs.FS
-	PagesDir    fs.FS
 }
 
 type Middleware func(*Hubro) func(http.Handler) http.Handler
@@ -28,13 +27,12 @@ type Hubro struct {
 	Server      *http.Server
 	Layouts     *template.Template
 	Templates   *template.Template
-	PagesDir    fs.FS
 	RootPath    string
 	middlewares []Middleware
 	publicDir   fs.FS
 }
 
-type HubroModule func(*Hubro, *http.ServeMux)
+type HubroModule func(*Hubro, *http.ServeMux, interface{})
 
 const (
 	rootLayout           = "app.gohtml"
@@ -56,8 +54,8 @@ func (h *Hubro) Use(m Middleware) {
 	h.middlewares = append(h.middlewares, m)
 }
 
-func (h *Hubro) AddModule(prefix string, module HubroModule) {
-	h.createSubMux(prefix, module)
+func (h *Hubro) AddModule(prefix string, module HubroModule, options interface{}) {
+	h.createSubMux(prefix, module, options)
 }
 
 func (h *Hubro) handlerWithMiddlewares(handler http.Handler) http.Handler {
@@ -71,9 +69,9 @@ func (h *Hubro) GetHandler() http.Handler {
 	return h.handlerWithMiddlewares(h.Mux)
 }
 
-func (h *Hubro) createSubMux(prefix string, module HubroModule) *http.ServeMux {
+func (h *Hubro) createSubMux(prefix string, module HubroModule, options interface{}) *http.ServeMux {
 	mux := http.NewServeMux()
-	module(h, mux)
+	module(h, mux, options)
 	h.Mux.Handle(prefix+"/", http.StripPrefix(prefix, mux))
 	return mux
 }
@@ -241,7 +239,6 @@ func NewHubro(config Config) *Hubro {
 		Server: &http.Server{
 			Addr: ":8080",
 		},
-		PagesDir:  config.PagesDir,
 		publicDir: config.PublicDir,
 	}
 	assetModificationTime, err := os.Stat("view/static/app.css")

@@ -17,16 +17,17 @@ import (
 	"github.com/sokkalf/hubro/server"
 )
 
-func Register(h *server.Hubro, mux *http.ServeMux) {
+func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
+	filesDir := options.(struct{ FilesDir fs.FS }).FilesDir
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM, meta.Meta),
 		goldmark.WithParserOptions(parser.WithAutoHeadingID()),
 		goldmark.WithRendererOptions(html.WithUnsafe()),
 	)
-	fs.WalkDir(h.PagesDir, ".", func(path string, d fs.DirEntry, err error) error {
+	fs.WalkDir(filesDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".md") {
 			name := strings.TrimSuffix(path, ".md")
-			content, err := fs.ReadFile(h.PagesDir, path)
+			content, err := fs.ReadFile(filesDir, path)
 			if err != nil {
 				slog.Error("Error reading page file", "page", path, "error", err)
 				goto next

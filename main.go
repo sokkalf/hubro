@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/fs"
 	"log/slog"
 	"os"
 
@@ -17,6 +18,7 @@ func main() {
 	templateDir := os.DirFS("view/templates")
 	publicDir := os.DirFS("view/public")
 	pagesDir := os.DirFS("pages")
+	blogDir := os.DirFS("blog")
 
 	config := server.Config{
 		RootPath:  "/",
@@ -24,10 +26,10 @@ func main() {
 		LayoutDir: layoutDir,
 		TemplateDir: templateDir,
 		PublicDir: publicDir,
-		PagesDir: pagesDir,
 	}
 	h := server.NewHubro(config)
 	h.Use(logging.LogMiddleware())
-	h.AddModule("/page", page.Register)
+	h.AddModule("/page", page.Register, struct{FilesDir fs.FS}{FilesDir: pagesDir})
+	h.AddModule("/blog", page.Register, struct{FilesDir fs.FS}{FilesDir: blogDir})
 	h.Start()
 }
