@@ -25,13 +25,13 @@ type Config struct {
 type Middleware func(*Hubro) func(http.Handler) http.Handler
 
 type Hubro struct {
-	Mux          *http.ServeMux
-	Server       *http.Server
-	Layouts      *template.Template
-	Templates    *template.Template
-	RootPath     string
-	middlewares  []Middleware
-	publicDir    fs.FS
+	Mux         *http.ServeMux
+	Server      *http.Server
+	Layouts     *template.Template
+	Templates   *template.Template
+	RootPath    string
+	middlewares []Middleware
+	publicDir   fs.FS
 }
 
 type HubroModule func(*Hubro, *http.ServeMux, interface{})
@@ -48,8 +48,8 @@ var publicFileWhiteList = []string{"favicon.ico", "robots.txt", "sitemap.xml", "
 	"cache_manifest.json"}
 
 var VendorLibs map[string]string = map[string]string{
-	"htmx":      "/vendor/htmx/htmx.min.js",
-	"alpine.js": "/vendor/alpine.js/alpine.min.js",
+	"htmx":         "/vendor/htmx/htmx.min.js",
+	"alpine.js":    "/vendor/alpine.js/alpine.min.js",
 	"highlight.js": "/vendor/highlight/highlight.min.js",
 }
 
@@ -114,15 +114,17 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 	h.Layouts = template.New("root_layout")
 	fs.WalkDir(layoutDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".gohtml") {
-			start := time.Now()
-			name := strings.TrimPrefix(path, "layouts/")
-			content, err := fs.ReadFile(layoutDir, path)
-			if err != nil {
-				slog.Error("Error reading layout file", "layout", path, "error", err)
-				panic(err)
-			}
-			h.Layouts = template.Must(h.Layouts.New(name).Funcs(defaultFuncMap).Parse(string(content)))
-			slog.Debug("Parsed layout", "layout", h.Layouts.Name(), "duration", time.Since(start))
+			go func() {
+				start := time.Now()
+				name := strings.TrimPrefix(path, "layouts/")
+				content, err := fs.ReadFile(layoutDir, path)
+				if err != nil {
+					slog.Error("Error reading layout file", "layout", path, "error", err)
+					panic(err)
+				}
+				h.Layouts = template.Must(h.Layouts.New(name).Funcs(defaultFuncMap).Parse(string(content)))
+				slog.Debug("Parsed layout", "layout", h.Layouts.Name(), "duration", time.Since(start))
+			}()
 		}
 		return nil
 	})
@@ -130,15 +132,17 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 	h.Templates = template.New("root")
 	fs.WalkDir(templateDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".gohtml") {
-			start := time.Now()
-			name := strings.TrimPrefix(path, "templates/")
-			content, err := fs.ReadFile(templateDir, path)
-			if err != nil {
-				slog.Error("Error reading template file", "template", path, "error", err)
-				panic(err)
-			}
-			h.Templates = template.Must(h.Templates.New(name).Funcs(defaultFuncMap).Parse(string(content)))
-			slog.Debug("Parsed template", "template", h.Templates.Name(), "duration", time.Since(start))
+			go func() {
+				start := time.Now()
+				name := strings.TrimPrefix(path, "templates/")
+				content, err := fs.ReadFile(templateDir, path)
+				if err != nil {
+					slog.Error("Error reading template file", "template", path, "error", err)
+					panic(err)
+				}
+				h.Templates = template.Must(h.Templates.New(name).Funcs(defaultFuncMap).Parse(string(content)))
+				slog.Debug("Parsed template", "template", h.Templates.Name(), "duration", time.Since(start))
+			}()
 		}
 		return nil
 	})
@@ -267,16 +271,22 @@ func NewHubro(config Config) *Hubro {
 		Server: &http.Server{
 			Addr: ":8080",
 		},
-		publicDir:   config.PublicDir,
+		publicDir: config.PublicDir,
 	}
 	assetModificationTime, err := os.Stat("view/static/app.css")
 	if err != nil {
 		slog.Error("Error getting file info, CSS file not found")
 		panic(err)
 	}
-	h.initTemplates(config.LayoutDir, config.TemplateDir, assetModificationTime.ModTime().Unix())
-	h.initStaticFiles()
-	h.initVendorDir(config.VendorDir)
+	go func() {
+		h.initTemplates(config.LayoutDir, config.TemplateDir, assetModificationTime.ModTime().Unix())
+	}()
+	go func() {
+		h.initStaticFiles()
+	}()
+	go func() {
+		h.initVendorDir(config.VendorDir)
+	}()
 	h.Mux.HandleFunc("/", h.indexHandler)
 	h.Mux.HandleFunc("GET /ping", h.pingHandler)
 	h.Mux.HandleFunc("GET /test", h.testHandler)
