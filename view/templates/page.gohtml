@@ -3,7 +3,7 @@
 		{{.Title}}
 	</h1>
 	<p class="text-gray-500 text-sm">
-		{{.Author}}
+		{{ if not .HideAuthor }}{{ .Author }}{{ end }}
 	</p>
 	<div class="markdown-body">
 		{{.Body}}

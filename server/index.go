@@ -17,6 +17,7 @@ type IndexEntry struct {
 	SortOrder int `json:"sortOrder"`
 	Metadata map[string]interface{} `json:"metadata"`
 	Visible bool `json:"visible"`
+	HideAuthor bool `json:"hideAuthor"`
 }
 
 type Index struct {
