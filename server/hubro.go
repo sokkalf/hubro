@@ -79,7 +79,7 @@ func (h *Hubro) createSubMux(prefix string, module HubroModule, options interfac
 
 func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64) {
 	defaultFuncMap := template.FuncMap{
-		"title": func() string {
+		"appTitle": func() string {
 			return "Hubro"
 		},
 		"staticPath": func(path string) string {
