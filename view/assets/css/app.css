@@ -47,4 +47,25 @@
 }
 
 .main-content {
+	margin-left: 250px;
+	margin-bottom: 50px;
+}
+
+.sidebar {
+	margin-top: 50px;
+	width: 250px;
+}
+
+footer {
+	text-align: center;
+	padding: 10px;
+	position: fixed;
+	bottom: 0;
+	width: 100%;
+}
+
+.avatar {
+	width: 150px;
+	height: 150px;
+	filter: invert(100%);
 }
