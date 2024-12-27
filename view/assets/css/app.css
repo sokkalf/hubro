@@ -2,6 +2,7 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 @import "./markdown.css";
+@import "../vendor/highlight/github.min.css";
 
 /* Add your custom styles here */
 .topnav {

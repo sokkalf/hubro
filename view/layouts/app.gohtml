@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ .Title }} - {{ appTitle }}</title>
   <script src="{{ vendor "htmx" }}"></script>
+  <script src="{{ vendor "highlight.js" }}"></script>
   <script defer src="{{ vendor "alpine.js" }}"></script>
 
   <link
@@ -17,5 +18,6 @@
 		{{yield}}
 	</main>
 	{{ template "partials/_footer.gohtml" . }}
+	<script>hljs.highlightAll();</script>
 </body>
 </html>

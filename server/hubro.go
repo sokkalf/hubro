@@ -50,6 +50,7 @@ var publicFileWhiteList = []string{"favicon.ico", "robots.txt", "sitemap.xml", "
 var VendorLibs map[string]string = map[string]string{
 	"htmx":      "/vendor/htmx/htmx.min.js",
 	"alpine.js": "/vendor/alpine.js/alpine.min.js",
+	"highlight.js": "/vendor/highlight/highlight.min.js",
 }
 
 func (h *Hubro) Use(m Middleware) {
