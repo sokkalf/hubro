@@ -10,6 +10,7 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -102,6 +103,7 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 	h.Layouts = template.New("root_layout")
 	fs.WalkDir(layoutDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".gohtml") {
+			start := time.Now()
 			name := strings.TrimPrefix(path, "layouts/")
 			content, err := fs.ReadFile(layoutDir, path)
 			if err != nil {
@@ -109,7 +111,7 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 				panic(err)
 			}
 			h.Layouts = template.Must(h.Layouts.New(name).Funcs(defaultFuncMap).Parse(string(content)))
-			slog.Debug("Parsed layout", "layout", h.Layouts.Name())
+			slog.Debug("Parsed layout", "layout", h.Layouts.Name(), "duration", time.Since(start))
 		}
 		return nil
 	})
@@ -117,6 +119,7 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 	h.Templates = template.New("root")
 	fs.WalkDir(templateDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".gohtml") {
+			start := time.Now()
 			name := strings.TrimPrefix(path, "templates/")
 			content, err := fs.ReadFile(templateDir, path)
 			if err != nil {
@@ -124,7 +127,7 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 				panic(err)
 			}
 			h.Templates = template.Must(h.Templates.New(name).Funcs(defaultFuncMap).Parse(string(content)))
-			slog.Debug("Parsed template", "template", h.Templates.Name())
+			slog.Debug("Parsed template", "template", h.Templates.Name(), "duration", time.Since(start))
 		}
 		return nil
 	})

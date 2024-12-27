@@ -7,9 +7,10 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/yuin/goldmark"
-	"github.com/yuin/goldmark-meta"
+	meta "github.com/yuin/goldmark-meta"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
@@ -26,6 +27,7 @@ func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
 	)
 	fs.WalkDir(filesDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".md") {
+			start := time.Now()
 			name := strings.TrimSuffix(path, ".md")
 			content, err := fs.ReadFile(filesDir, path)
 			if err != nil {
@@ -37,7 +39,8 @@ func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
 				slog.Error("Error converting markdown", "page", path, "error", err)
 				goto next
 			}
-			mux.HandleFunc("/"+name, func(w http.ResponseWriter, r *http.Request) {
+			path := "/" + name
+			mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 				h.Render(w, r, "page.gohtml", struct {
 					Title string
 					Body  template.HTML
@@ -46,7 +49,7 @@ func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
 					Body:  template.HTML(buf.String()),
 				})
 			})
-			slog.Debug("Parsed page", "page", name)
+			slog.Debug("Parsed page", "page", name, "path", path, "duration", time.Since(start))
 		}
 	next:
 		return nil
