@@ -23,6 +23,45 @@ func slugify(s string) string {
 	return slug.Make(s)
 }
 
+func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, filesDir fs.FS) {
+	var handlerPath string
+	var title string
+	var metaData map[string]interface{}
+	var buf bytes.Buffer
+	var context parser.Context
+
+	start := time.Now()
+	name := strings.TrimSuffix(path, ".md")
+	content, err := fs.ReadFile(filesDir, path)
+	if err != nil {
+		slog.Error("Error reading page file", "page", path, "error", err)
+		goto next
+	}
+	context = parser.NewContext()
+	if err := md.Convert(content, &buf, parser.WithContext(context)); err != nil {
+		slog.Error("Error converting markdown", "page", path, "error", err)
+		goto next
+	}
+	metaData = meta.Get(context)
+	if t, ok := metaData["title"]; ok {
+		title = t.(string)
+	} else {
+		title = name
+	}
+	handlerPath = "/" + slugify(title)
+	mux.HandleFunc(handlerPath, func(w http.ResponseWriter, r *http.Request) {
+		h.Render(w, r, "page.gohtml", struct {
+			Title string
+			Body  template.HTML
+		}{
+			Title: title,
+			Body:  template.HTML(buf.String()),
+		})
+	})
+	slog.Debug("Parsed page", "page", name, "title", title, "path", handlerPath, "duration", time.Since(start))
+	next:
+}
+
 func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
 	filesDir := options.(struct{ FilesDir fs.FS }).FilesDir
 	md := goldmark.New(
@@ -32,39 +71,8 @@ func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
 	)
 	fs.WalkDir(filesDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".md") {
-			start := time.Now()
-			name := strings.TrimSuffix(path, ".md")
-			content, err := fs.ReadFile(filesDir, path)
-			if err != nil {
-				slog.Error("Error reading page file", "page", path, "error", err)
-				goto next
-			}
-			var buf bytes.Buffer
-			context := parser.NewContext()
-			if err := md.Convert(content, &buf, parser.WithContext(context)); err != nil {
-				slog.Error("Error converting markdown", "page", path, "error", err)
-				goto next
-			}
-			metaData := meta.Get(context)
-			var title string
-			if t, ok := metaData["title"]; ok {
-				title = t.(string)
-			} else {
-				title = name
-			}
-			path := "/" + slugify(title)
-			mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-				h.Render(w, r, "page.gohtml", struct {
-					Title string
-					Body  template.HTML
-				}{
-					Title: title,
-					Body:  template.HTML(buf.String()),
-				})
-			})
-			slog.Debug("Parsed page", "page", name, "title", title, "path", path, "duration", time.Since(start))
+			go parse(h, mux, md, path, filesDir)
 		}
-	next:
 		return nil
 	})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
