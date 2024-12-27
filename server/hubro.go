@@ -99,6 +99,7 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 		},
 		"yield": func() (string, error) {
 			// overwritten when rendering with layout
+			slog.Warn("yield called unexpectedly")
 			return "", fmt.Errorf("yield called unexpectedly.")
 		},
 		"listPages": func() []IndexEntry {
