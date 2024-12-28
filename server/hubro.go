@@ -37,9 +37,9 @@ type Hubro struct {
 type HubroModule func(*Hubro, *http.ServeMux, interface{})
 
 const (
-	rootLayout           = "app.gohtml"
-	errorLayout          = "errors/layout.gohtml"
-	defaultErrorTemplate = "errors/default.gohtml"
+	rootLayout           = "app"
+	errorLayout          = "errors/layout"
+	defaultErrorTemplate = "errors/default"
 )
 
 var publicFileWhiteList = []string{"favicon.ico", "robots.txt", "sitemap.xml", "manifest.json", "apple-touch-icon.png",
@@ -117,6 +117,7 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 			go func() {
 				start := time.Now()
 				name := strings.TrimPrefix(path, "layouts/")
+				name = strings.TrimSuffix(name, ".gohtml")
 				content, err := fs.ReadFile(layoutDir, path)
 				if err != nil {
 					slog.Error("Error reading layout file", "layout", path, "error", err)
@@ -135,6 +136,7 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 			go func() {
 				start := time.Now()
 				name := strings.TrimPrefix(path, "templates/")
+				name = strings.TrimSuffix(name, ".gohtml")
 				content, err := fs.ReadFile(templateDir, path)
 				if err != nil {
 					slog.Error("Error reading template file", "template", path, "error", err)
@@ -172,7 +174,7 @@ func (h *Hubro) initVendorDir(vendorDir fs.FS) {
 func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
 		// Render the "index.gohtml" template
-		h.Render(w, r, "index.gohtml", nil)
+		h.Render(w, r, "index", nil)
 	} else {
 		fs := http.FS(h.publicDir)
 		if !slices.Contains(publicFileWhiteList, strings.TrimPrefix(r.URL.Path, "/")) {
@@ -205,7 +207,7 @@ func (h *Hubro) pingHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *Hubro) ErrorHandler(w http.ResponseWriter, r *http.Request, status int, message *string) {
 	w.WriteHeader(status)
-	errorTemplate := fmt.Sprintf("errors/%d.gohtml", status)
+	errorTemplate := fmt.Sprintf("errors/%d", status)
 	data := struct {
 		Status  int
 		Message *string

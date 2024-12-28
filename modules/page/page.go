@@ -79,7 +79,7 @@ func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path strin
 		HideAuthor: hideAuthor,
 	})
 	mux.HandleFunc(handlerPath, func(w http.ResponseWriter, r *http.Request) {
-		h.Render(w, r, "page.gohtml", struct {
+		h.Render(w, r, "page", struct {
 			Title string
 			Author string
 			Visible bool

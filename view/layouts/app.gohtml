@@ -13,12 +13,12 @@
   >
 </head>
 <body class="bg-gray-100">
-	{{ template "partials/_topbar.gohtml" . }}
-	{{ template "partials/_sidebar.gohtml" . }}
+	{{ template "partials/_topbar" . }}
+	{{ template "partials/_sidebar" . }}
 	<main class="main-content py-2 px-2">
 		{{yield}}
 	</main>
-	{{ template "partials/_footer.gohtml" . }}
+	{{ template "partials/_footer" . }}
 	<script>hljs.highlightAll();</script>
 </body>
 </html>
