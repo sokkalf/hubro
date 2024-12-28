@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"log/slog"
 	"os"
 	"time"
 
 	"github.com/sokkalf/hubro/logging"
 	"github.com/sokkalf/hubro/modules/page"
+	"github.com/sokkalf/hubro/modules/redirects"
 	"github.com/sokkalf/hubro/server"
 )
 
@@ -36,5 +38,19 @@ func main() {
 	h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, IndexSummary: true, IndexFunc: blogIndex.AddEntry})
 	pageIndex.SortBySortOrder()
 	blogIndex.SortByDate()
+	b, err := os.ReadFile("legacyRoutes.json")
+	if err != nil {
+		slog.Info("No legacy routes found")
+	} else {
+		var legacyRoutes []redirects.PathRoutes
+		err = json.Unmarshal(b, &legacyRoutes)
+		if err != nil {
+			slog.Error("Error unmarshalling legacy routes", "error", err)
+		} else {
+			for _, route := range legacyRoutes {
+				h.AddModule(route.Path, redirects.Register, route)
+			}
+		}
+	}
 	h.Start(start)
 }
