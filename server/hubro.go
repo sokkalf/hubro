@@ -34,7 +34,9 @@ type Hubro struct {
 	publicDir   fs.FS
 }
 
-type HubroModule func(*Hubro, *http.ServeMux, interface{})
+type HubroModule func(string, *Hubro, *http.ServeMux, interface{})
+type ContextKey string
+const ContextPrefixKey ContextKey = "prefix"
 
 const (
 	rootLayout           = "app"
@@ -75,7 +77,7 @@ func (h *Hubro) GetHandler() http.Handler {
 
 func (h *Hubro) createSubMux(prefix string, module HubroModule, options interface{}) *http.ServeMux {
 	mux := http.NewServeMux()
-	module(h, mux, options)
+	module(prefix, h, mux, options)
 	h.Mux.Handle(prefix+"/", http.StripPrefix(prefix, mux))
 	return mux
 }

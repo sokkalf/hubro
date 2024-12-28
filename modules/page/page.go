@@ -24,7 +24,7 @@ func slugify(s string) string {
 	return slug.Make(s)
 }
 
-func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, filesDir fs.FS, indexFunc func(server.IndexEntry)) {
+func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, filesDir fs.FS, indexFunc func(server.IndexEntry)) {
 	var handlerPath string
 	var title string
 	var author string
@@ -104,11 +104,11 @@ func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path strin
 			Tags: tags,
 		})
 	})
-	slog.Debug("Parsed page", "page", name, "title", title, "path", handlerPath, "duration", time.Since(start))
+	slog.Debug("Parsed page", "page", name, "title", title, "path", prefix + handlerPath, "duration", time.Since(start))
 	next:
 }
 
-func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
+func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
 	start := time.Now()
 	var wg sync.WaitGroup
 	opts := options.(struct{
@@ -127,7 +127,7 @@ func Register(h *server.Hubro, mux *http.ServeMux, options interface{}) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				parse(h, mux, md, path, filesDir, indexFunc)
+				parse(prefix, h, mux, md, path, filesDir, indexFunc)
 			}()
 		}
 		return nil
