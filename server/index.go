@@ -71,6 +71,6 @@ func (i *Index) SortByDate() {
 		return
 	}
 	sort.Slice(i.Entries, func(j, k int) bool {
-		return i.Entries[j].Date.Before(i.Entries[k].Date)
+		return i.Entries[k].Date.Before(i.Entries[j].Date)
 	})
 }
