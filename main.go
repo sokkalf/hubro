@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/sokkalf/hubro/logging"
+	"github.com/sokkalf/hubro/modules/feeds"
 	"github.com/sokkalf/hubro/modules/page"
 	"github.com/sokkalf/hubro/modules/redirects"
 	"github.com/sokkalf/hubro/server"
@@ -24,20 +25,21 @@ func main() {
 	blogDir := os.DirFS("blog")
 
 	config := server.Config{
-		RootPath:  "/",
-		VendorDir: vendorDir,
-		LayoutDir: layoutDir,
+		RootPath:    "/",
+		VendorDir:   vendorDir,
+		LayoutDir:   layoutDir,
 		TemplateDir: templateDir,
-		PublicDir: publicDir,
+		PublicDir:   publicDir,
 	}
 	h := server.NewHubro(config)
 	h.Use(logging.LogMiddleware())
-	blogIndex := server.NewIndex("blog", h.RootPath + "blog")
-	pageIndex := server.NewIndex("pages", h.RootPath + "page")
+	blogIndex := server.NewIndex("blog", h.RootPath+"blog")
+	pageIndex := server.NewIndex("pages", h.RootPath+"page")
 	h.AddModule("/page", page.Register, page.PageOptions{FilesDir: pagesDir, IndexSummary: false, IndexFunc: pageIndex.AddEntry})
 	h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, IndexSummary: true, IndexFunc: blogIndex.AddEntry})
 	pageIndex.SortBySortOrder()
 	blogIndex.SortByDate()
+	h.AddModule("/feeds", feeds.Register, blogIndex)
 	b, err := os.ReadFile("legacyRoutes.json")
 	if err != nil {
 		slog.Info("No legacy routes found")

@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/gorilla/feeds v1.2.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
