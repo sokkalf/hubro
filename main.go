@@ -39,7 +39,11 @@ func main() {
 	h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, IndexSummary: true, IndexFunc: blogIndex.AddEntry})
 	pageIndex.SortBySortOrder()
 	blogIndex.SortByDate()
-	h.AddModule("/feeds", feeds.Register, blogIndex)
+	if blogIndex.Count() > 0 {
+		h.AddModule("/feeds", feeds.Register, blogIndex)
+	} else {
+		slog.Info("No blog entries found, skipping feeds")
+	}
 	b, err := os.ReadFile("legacyRoutes.json")
 	if err != nil {
 		slog.Info("No legacy routes found")
