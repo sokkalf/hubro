@@ -74,7 +74,10 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 		delete(metaData, "hideAuthor")
 	}
 	if t, ok := metaData["tags"]; ok {
-		tags = t.([]string)
+		tags = make([]string, 0)
+		for _, tag := range t.([]interface{}) {
+			tags = append(tags, tag.(string))
+		}
 		delete(metaData, "tags")
 	} else {
 		tags = []string{}
