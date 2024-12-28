@@ -3,6 +3,7 @@ package server
 import (
 	"html/template"
 	"log/slog"
+	"sort"
 	"time"
 )
 
@@ -54,4 +55,22 @@ func GetIndex(name string) *Index {
 func (i *Index) AddEntry(e IndexEntry) {
 	e.Path = i.rootPath + e.Path
 	i.Entries = append(i.Entries, e)
+}
+
+func (i *Index) SortBySortOrder() {
+	if i.Entries == nil {
+		return
+	}
+	sort.Slice(i.Entries, func(j, k int) bool {
+		return i.Entries[j].SortOrder < i.Entries[k].SortOrder
+	})
+}
+
+func (i *Index) SortByDate() {
+	if i.Entries == nil {
+		return
+	}
+	sort.Slice(i.Entries, func(j, k int) bool {
+		return i.Entries[j].Date.Before(i.Entries[k].Date)
+	})
 }
