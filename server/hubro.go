@@ -182,7 +182,7 @@ func (h *Hubro) initVendorDir(vendorDir fs.FS) {
 func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
 		// Render the "index.gohtml" template
-		h.Render(w, r, "index", nil)
+		h.Render(w, r, "blogindex", nil)
 	} else {
 		fs := http.FS(h.publicDir)
 		if !slices.Contains(publicFileWhiteList, strings.TrimPrefix(r.URL.Path, "/")) {
