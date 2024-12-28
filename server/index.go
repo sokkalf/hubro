@@ -74,3 +74,7 @@ func (i *Index) SortByDate() {
 		return i.Entries[k].Date.Before(i.Entries[j].Date)
 	})
 }
+
+func (i *Index) Count() int {
+	return len(i.Entries)
+}
