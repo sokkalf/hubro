@@ -18,6 +18,7 @@ type IndexEntry struct {
 	Metadata map[string]interface{} `json:"metadata"`
 	Visible bool `json:"visible"`
 	HideAuthor bool `json:"hideAuthor"`
+	Tags []string `json:"tags"`
 }
 
 type Index struct {

@@ -32,6 +32,7 @@ func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path strin
 	var hideAuthor bool = false
 	var sortOrder int
 	var metaData map[string]interface{}
+	var tags []string
 	var buf bytes.Buffer
 	var context parser.Context
 
@@ -67,6 +68,11 @@ func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path strin
 	if h, ok := metaData["hideAuthor"]; ok {
 		hideAuthor = h.(bool)
 	}
+	if t, ok := metaData["tags"]; ok {
+		tags = t.([]string)
+	} else {
+		tags = []string{}
+	}
 
 	handlerPath = "/" + slugify(title)
 	indexFunc(server.IndexEntry{
@@ -77,6 +83,7 @@ func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path strin
 		Path: handlerPath,
 		SortOrder: sortOrder,
 		HideAuthor: hideAuthor,
+		Tags: tags,
 	})
 	mux.HandleFunc(handlerPath, func(w http.ResponseWriter, r *http.Request) {
 		h.Render(w, r, "page", struct {
@@ -86,6 +93,7 @@ func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path strin
 			Body  template.HTML
 			HideAuthor bool
 			Metadata map[string]interface{}
+			Tags []string
 		}{
 			Title: title,
 			Author: author,
@@ -93,6 +101,7 @@ func parse(h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path strin
 			Body:  template.HTML(buf.String()),
 			HideAuthor: hideAuthor,
 			Metadata: metaData,
+			Tags: tags,
 		})
 	})
 	slog.Debug("Parsed page", "page", name, "title", title, "path", handlerPath, "duration", time.Since(start))
