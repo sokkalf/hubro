@@ -289,9 +289,9 @@ func NewHubro(config Config) *Hubro {
 	return h
 }
 
-func (h *Hubro) Start() {
+func (h *Hubro) Start(startTime time.Time) {
 	h.Server.Handler = h.GetHandler()
 	port := 8080
-	slog.Info("Server started", "port", port, "rootPath", h.RootPath)
+	slog.Info("Server started", "port", port, "rootPath", h.RootPath, "duration", time.Since(startTime))
 	http.ListenAndServe(fmt.Sprintf(":%d", port), h.Server.Handler)
 }

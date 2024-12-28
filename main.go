@@ -3,6 +3,7 @@ package main
 import (
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/sokkalf/hubro/logging"
 	"github.com/sokkalf/hubro/modules/page"
@@ -10,6 +11,7 @@ import (
 )
 
 func main() {
+	start := time.Now()
 	logging.InitLogger("development")
 	slog.Info("Starting Hubro 🦉")
 	vendorDir := os.DirFS("view/assets/vendor")
@@ -34,5 +36,5 @@ func main() {
 	h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, IndexSummary: true, IndexFunc: blogIndex.AddEntry})
 	pageIndex.SortBySortOrder()
 	blogIndex.SortByDate()
-	h.Start()
+	h.Start(start)
 }
