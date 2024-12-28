@@ -2,6 +2,11 @@
 	<h1 class="text-2xl font-semibold">
 		{{.Title}}
 	</h1>
+	<div class="tags py-2">
+		{{ range .Tags }}
+		<span class="tag rounded-full px-3 py-1 text-sm bg-indigo-300">{{ . }}</span>
+		{{ end }}
+	</div>
 	<p class="text-gray-500 text-sm">
 		{{ if not .HideAuthor }}{{ .Author }}{{ end }}
 	</p>
