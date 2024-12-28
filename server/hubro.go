@@ -11,10 +11,13 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	hc "github.com/sokkalf/hubro/config"
 )
 
 type Config struct {
 	RootPath    string
+	Port        int
 	VendorDir   fs.FS
 	TemplateDir fs.FS
 	LayoutDir   fs.FS
@@ -28,13 +31,14 @@ type Hubro struct {
 	Server      *http.Server
 	Layouts     *template.Template
 	Templates   *template.Template
-	RootPath    string
+	config      hc.HubroConfig
 	middlewares []Middleware
 	publicDir   fs.FS
 }
 
 type HubroModule func(string, *Hubro, *http.ServeMux, interface{})
 type ContextKey string
+
 const ContextPrefixKey ContextKey = "prefix"
 
 const (
@@ -84,22 +88,22 @@ func (h *Hubro) createSubMux(prefix string, module HubroModule, options interfac
 func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64) {
 	defaultFuncMap := template.FuncMap{
 		"appTitle": func() string {
-			return "Hubro"
+			return h.config.Title
 		},
 		"rootPath": func() string {
-			return strings.TrimSuffix(h.RootPath, "/")
+			return strings.TrimSuffix(h.config.RootPath, "/")
 		},
 		"staticPath": func(path string) string {
-			return strings.TrimSuffix(h.RootPath, "/") + "/static/" + path
+			return strings.TrimSuffix(h.config.RootPath, "/") + "/static/" + path
 		},
 		"vendorPath": func(path string) string {
-			return strings.TrimSuffix(h.RootPath, "/") + "/vendor/" + path
+			return strings.TrimSuffix(h.config.RootPath, "/") + "/vendor/" + path
 		},
 		"appCSS": func() string {
-			return fmt.Sprintf("%s/static/app.css?v=%d", strings.TrimSuffix(h.RootPath, "/"), modTime)
+			return fmt.Sprintf("%s/static/app.css?v=%d", strings.TrimSuffix(h.config.RootPath, "/"), modTime)
 		},
 		"vendor": func(path string) string {
-			return strings.TrimSuffix(h.RootPath, "/") + VendorLibs[path]
+			return strings.TrimSuffix(h.config.RootPath, "/") + VendorLibs[path]
 		},
 		"yield": func() (string, error) {
 			// overwritten when rendering with layout
@@ -262,10 +266,10 @@ func (h *Hubro) Render(w http.ResponseWriter, r *http.Request, templateName stri
 
 func NewHubro(config Config) *Hubro {
 	h := &Hubro{
-		RootPath: config.RootPath,
-		Mux:      http.NewServeMux(),
+		config: *hc.Config,
+		Mux:    http.NewServeMux(),
 		Server: &http.Server{
-			Addr: ":8080",
+			Addr: fmt.Sprintf(":%d", config.Port),
 		},
 		publicDir: config.PublicDir,
 	}
@@ -291,7 +295,7 @@ func NewHubro(config Config) *Hubro {
 
 func (h *Hubro) Start(startTime time.Time) {
 	h.Server.Handler = h.GetHandler()
-	port := 8080
-	slog.Info("Server started", "port", port, "rootPath", h.RootPath, "duration", time.Since(startTime))
+	port := h.config.Port
+	slog.Info("Server started", "port", port, "rootPath", h.config.RootPath, "duration", time.Since(startTime))
 	http.ListenAndServe(fmt.Sprintf(":%d", port), h.Server.Handler)
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/sokkalf/hubro/config"
 	"github.com/sokkalf/hubro/logging"
 	"github.com/sokkalf/hubro/modules/feeds"
 	"github.com/sokkalf/hubro/modules/page"
@@ -15,6 +16,7 @@ import (
 
 func main() {
 	start := time.Now()
+	config.Init()
 	logging.InitLogger("development")
 	slog.Info("Starting Hubro 🦉")
 	vendorDir := os.DirFS("view/assets/vendor")
@@ -24,17 +26,18 @@ func main() {
 	pagesDir := os.DirFS("pages")
 	blogDir := os.DirFS("blog")
 
-	config := server.Config{
-		RootPath:    "/",
+	cfg := server.Config{
+		RootPath:    config.Config.RootPath,
+		Port:        config.Config.Port,
 		VendorDir:   vendorDir,
 		LayoutDir:   layoutDir,
 		TemplateDir: templateDir,
 		PublicDir:   publicDir,
 	}
-	h := server.NewHubro(config)
+	h := server.NewHubro(cfg)
 	h.Use(logging.LogMiddleware())
-	blogIndex := server.NewIndex("blog", h.RootPath+"blog")
-	pageIndex := server.NewIndex("pages", h.RootPath+"page")
+	blogIndex := server.NewIndex("blog", config.Config.RootPath+"blog")
+	pageIndex := server.NewIndex("pages", config.Config.RootPath+"page")
 	h.AddModule("/page", page.Register, page.PageOptions{FilesDir: pagesDir, IndexSummary: false, IndexFunc: pageIndex.AddEntry})
 	h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, IndexSummary: true, IndexFunc: blogIndex.AddEntry})
 	pageIndex.SortBySortOrder()
