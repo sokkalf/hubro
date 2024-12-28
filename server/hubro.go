@@ -109,9 +109,13 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 		"format_date": func(date time.Time) string {
 			return date.Format("2006-01-02")
 		},
-		"listPages": func() []IndexEntry {
-			slog.Warn("listPages called unexpectedly")
-			return nil
+		"listPages": func(index string) []IndexEntry {
+			entries := GetIndex(index)
+			if entries == nil {
+				return []IndexEntry{}
+			} else {
+				return entries.Entries
+			}
 		},
 	}
 
@@ -236,14 +240,6 @@ func (h *Hubro) RenderWithLayout(w http.ResponseWriter, r *http.Request, layoutN
 			buf := bytes.NewBuffer(nil)
 			err := h.Templates.ExecuteTemplate(buf, templateName, data)
 			return template.HTML(buf.String()), err
-		},
-		"listPages": func() []IndexEntry {
-			entries := GetIndex("pages")
-			if entries == nil {
-				return []IndexEntry{}
-			} else {
-				return entries.Entries
-			}
 		},
 	}
 	layout := h.Layouts.Lookup(layoutName)

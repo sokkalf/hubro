@@ -1,6 +1,6 @@
 <div class="topnav bg-indigo-950">
 	<a href="/">Home</a>
-	{{ range listPages }}
+	{{ range listPages "pages" }}
 		{{ if not .Visible }}
 			{{ continue }}
 		{{ end }}
