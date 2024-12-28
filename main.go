@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/fs"
 	"log/slog"
 	"os"
 
@@ -30,16 +29,8 @@ func main() {
 	h := server.NewHubro(config)
 	h.Use(logging.LogMiddleware())
 	pageIndex := server.NewIndex("pages", h.RootPath + "page")
-	h.AddModule("/page", page.Register,
-		struct{
-			FilesDir fs.FS
-			IndexFunc func(server.IndexEntry)
-		}{FilesDir: pagesDir, IndexFunc: pageIndex.AddEntry})
+	h.AddModule("/page", page.Register, page.PageOptions{FilesDir: pagesDir, IndexSummary: false, IndexFunc: pageIndex.AddEntry})
 	blogIndex := server.NewIndex("blog", h.RootPath + "blog")
-	h.AddModule("/blog", page.Register,
-		struct{
-			FilesDir fs.FS
-			IndexFunc func(server.IndexEntry)
-		}{FilesDir: blogDir, IndexFunc: blogIndex.AddEntry})
+	h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, IndexSummary: true, IndexFunc: blogIndex.AddEntry})
 	h.Start()
 }

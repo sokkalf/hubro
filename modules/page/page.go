@@ -20,11 +20,17 @@ import (
 	"github.com/sokkalf/hubro/server"
 )
 
+type PageOptions struct {
+	FilesDir fs.FS
+	IndexSummary bool
+	IndexFunc func(server.IndexEntry)
+}
+
 func slugify(s string) string {
 	return slug.Make(s)
 }
 
-func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, filesDir fs.FS, indexFunc func(server.IndexEntry)) {
+func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, opts PageOptions) {
 	var handlerPath string
 	var title string
 	var author string
@@ -38,7 +44,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 
 	start := time.Now()
 	name := strings.TrimSuffix(path, ".md")
-	content, err := fs.ReadFile(filesDir, path)
+	content, err := fs.ReadFile(opts.FilesDir, path)
 	if err != nil {
 		slog.Error("Error reading page file", "page", path, "error", err)
 		goto next
@@ -84,7 +90,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 	}
 
 	handlerPath = "/" + slugify(title)
-	indexFunc(server.IndexEntry{
+	opts.IndexFunc(server.IndexEntry{
 		Title: title,
 		Author: author,
 		Visible: visible,
@@ -120,12 +126,12 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
 	start := time.Now()
 	var wg sync.WaitGroup
-	opts := options.(struct{
-		FilesDir fs.FS
-		IndexFunc func(server.IndexEntry)
-	})
+	opts, ok := options.(PageOptions)
+	if !ok {
+		slog.Error("Invalid options for page module")
+		return
+	}
 	filesDir := opts.FilesDir
-	indexFunc := opts.IndexFunc
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM, meta.Meta),
 		goldmark.WithParserOptions(parser.WithAutoHeadingID()),
@@ -136,7 +142,7 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				parse(prefix, h, mux, md, path, filesDir, indexFunc)
+				parse(prefix, h, mux, md, path, opts)
 			}()
 		}
 		return nil
