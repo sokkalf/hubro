@@ -33,5 +33,6 @@ func main() {
 	h.AddModule("/page", page.Register, page.PageOptions{FilesDir: pagesDir, IndexSummary: false, IndexFunc: pageIndex.AddEntry})
 	h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, IndexSummary: true, IndexFunc: blogIndex.AddEntry})
 	pageIndex.SortBySortOrder()
+	blogIndex.SortByDate()
 	h.Start()
 }

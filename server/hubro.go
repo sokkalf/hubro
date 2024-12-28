@@ -106,6 +106,9 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 			slog.Warn("yield called unexpectedly")
 			return "", fmt.Errorf("yield called unexpectedly.")
 		},
+		"format_date": func(date time.Time) string {
+			return date.Format("2006-01-02")
+		},
 		"listPages": func() []IndexEntry {
 			slog.Warn("listPages called unexpectedly")
 			return nil

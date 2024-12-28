@@ -18,6 +18,7 @@ import (
 	"github.com/yuin/goldmark/renderer/html"
 
 	"github.com/sokkalf/hubro/server"
+	"github.com/sokkalf/hubro/utils"
 )
 
 type PageOptions struct {
@@ -40,6 +41,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 	var metaData map[string]interface{}
 	var tags []string
 	var summary *template.HTML
+	var date time.Time
 	var buf bytes.Buffer
 	var context parser.Context
 
@@ -89,6 +91,12 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 	} else {
 		tags = []string{}
 	}
+	if t, ok := metaData["date"]; ok {
+		date = utils.ParseDate(t.(string))
+		delete(metaData, "date")
+	} else {
+		date = time.Time{}
+	}
 
 	if opts.IndexSummary {
 		s := strings.SplitN(buf.String(), "<!--more-->", 2)[0]
@@ -111,6 +119,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 		SortOrder: sortOrder,
 		HideAuthor: hideAuthor,
 		Tags: tags,
+		Date: date,
 		Summary: summary,
 	})
 	mux.HandleFunc(handlerPath, func(w http.ResponseWriter, r *http.Request) {
@@ -122,6 +131,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 			HideAuthor bool
 			Metadata map[string]interface{}
 			Tags []string
+			Date time.Time
 		}{
 			Title: title,
 			Author: author,
@@ -130,6 +140,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 			HideAuthor: hideAuthor,
 			Metadata: metaData,
 			Tags: tags,
+			Date: date,
 		})
 	})
 	slog.Debug("Parsed page", "page", name, "title", title, "path", prefix + handlerPath, "duration", time.Since(start))
