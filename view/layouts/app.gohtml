@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>{{ .Title }} - {{ appTitle }}</title>
   <script src="{{ vendor "htmx" }}"></script>
   <script src="{{ vendor "highlight.js" }}"></script>
   <script defer src="{{ vendor "alpine.js" }}"></script>
-
-  <link
-  href="{{ appCSS }}"
-    rel="stylesheet"
-  >
+  <link rel="alternate" type="application/rss+xml" title="{{ appTitle }}" href="/feeds/rss" />
+  <link rel="alternate" type="application/atom+xml" title="{{ appTitle }}" href="/feeds/atom" />
+  <link href="{{ appCSS }}" rel="stylesheet">
 </head>
 <body class="bg-gray-100">
 	{{ template "partials/_topbar" . }}
