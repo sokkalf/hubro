@@ -39,6 +39,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 	var sortOrder int
 	var metaData map[string]interface{}
 	var tags []string
+	var summary *template.HTML
 	var buf bytes.Buffer
 	var context parser.Context
 
@@ -89,6 +90,17 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 		tags = []string{}
 	}
 
+	if opts.IndexSummary {
+		s := strings.SplitN(buf.String(), "<!--more-->", 2)[0]
+		if s == "" {
+			s = buf.String()
+		}
+		sum := template.HTML(s)
+		summary = &sum
+	} else {
+		summary = nil
+	}
+
 	handlerPath = "/" + slugify(title)
 	opts.IndexFunc(server.IndexEntry{
 		Title: title,
@@ -99,6 +111,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 		SortOrder: sortOrder,
 		HideAuthor: hideAuthor,
 		Tags: tags,
+		Summary: summary,
 	})
 	mux.HandleFunc(handlerPath, func(w http.ResponseWriter, r *http.Request) {
 		h.Render(w, r, "page", struct {

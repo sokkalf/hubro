@@ -1,6 +1,7 @@
 package server
 
 import (
+	"html/template"
 	"log/slog"
 	"time"
 )
@@ -10,29 +11,27 @@ type Indices map[string]*Index
 var indices Indices
 
 type IndexEntry struct {
-	Title string `json:"title"`
-	Author string `json:"author"`
-	Path string `json:"path"`
-	Date time.Time `json:"date"`
-	SortOrder int `json:"sortOrder"`
-	Metadata map[string]interface{} `json:"metadata"`
-	Visible bool `json:"visible"`
-	HideAuthor bool `json:"hideAuthor"`
-	Tags []string `json:"tags"`
+	Title      string                 `json:"title"`
+	Author     string                 `json:"author"`
+	Path       string                 `json:"path"`
+	Date       time.Time              `json:"date"`
+	SortOrder  int                    `json:"sortOrder"`
+	Metadata   map[string]interface{} `json:"metadata"`
+	Visible    bool                   `json:"visible"`
+	HideAuthor bool                   `json:"hideAuthor"`
+	Tags       []string               `json:"tags"`
+	Summary    *template.HTML         `json:"summary"`
 }
 
 type Index struct {
-	Entries []IndexEntry `json:"entries"`
+	Entries  []IndexEntry `json:"entries"`
 	rootPath string
-	name string
+	name     string
 }
 
 func NewIndex(name string, rootPath string) *Index {
-	entry := Index{name: name, rootPath: rootPath}
 	if indices == nil {
 		indices = make(Indices)
-		indices[name] = &entry
-	} else if _, ok := indices[name]; ok {
 	}
 
 	if i, ok := indices[name]; ok {

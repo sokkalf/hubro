@@ -28,9 +28,9 @@ func main() {
 	}
 	h := server.NewHubro(config)
 	h.Use(logging.LogMiddleware())
+	blogIndex := server.NewIndex("blog", h.RootPath + "blog")
 	pageIndex := server.NewIndex("pages", h.RootPath + "page")
 	h.AddModule("/page", page.Register, page.PageOptions{FilesDir: pagesDir, IndexSummary: false, IndexFunc: pageIndex.AddEntry})
-	blogIndex := server.NewIndex("blog", h.RootPath + "blog")
 	h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, IndexSummary: true, IndexFunc: blogIndex.AddEntry})
 	h.Start()
 }
