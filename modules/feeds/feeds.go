@@ -1,6 +1,7 @@
 package feeds
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -39,6 +40,7 @@ func getFeedFromIndex(index *server.Index) *gorillafeeds.Feed {
 }
 
 func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
+	start := time.Now()
 	index := options.(*server.Index)
 	feed := getFeedFromIndex(index)
 
@@ -50,4 +52,5 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 		w.Header().Set("Content-Type", "application/atom+xml")
 		feed.WriteAtom(w)
 	})
+	slog.Info("Registered feeds", "atomUrl", prefix+"/atom", "rssUrl", prefix+"/rss", "duration", time.Since(start))
 }
