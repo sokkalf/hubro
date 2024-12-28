@@ -33,9 +33,16 @@ func NewIndex(name string, rootPath string) *Index {
 		indices = make(Indices)
 		indices[name] = &entry
 	} else if _, ok := indices[name]; ok {
-		slog.Error("Index already exists", "name", name)
 	}
-	return &entry
+
+	if i, ok := indices[name]; ok {
+		slog.Error("Index already exists", "name", name)
+		return i
+	}
+
+	entry := &Index{name: name, rootPath: rootPath}
+	indices[name] = entry
+	return entry
 }
 
 func GetIndex(name string) *Index {
