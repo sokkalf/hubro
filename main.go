@@ -32,5 +32,6 @@ func main() {
 	pageIndex := server.NewIndex("pages", h.RootPath + "page")
 	h.AddModule("/page", page.Register, page.PageOptions{FilesDir: pagesDir, IndexSummary: false, IndexFunc: pageIndex.AddEntry})
 	h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, IndexSummary: true, IndexFunc: blogIndex.AddEntry})
+	pageIndex.SortBySortOrder()
 	h.Start()
 }
