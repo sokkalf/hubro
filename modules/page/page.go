@@ -51,25 +51,31 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 	metaData = meta.Get(context)
 	if t, ok := metaData["title"]; ok {
 		title = t.(string)
+		delete(metaData, "title")
 	} else {
 		title = name
 	}
 	if a, ok := metaData["author"]; ok {
 		author = a.(string)
+		delete(metaData, "author")
 	}
 	if v, ok := metaData["visible"]; ok {
 		visible = v.(bool)
+		delete(metaData, "visible")
 	}
 	if s, ok := metaData["sortOrder"]; ok {
 		sortOrder = s.(int)
+		delete(metaData, "sortOrder")
 	} else {
 		sortOrder = 0
 	}
 	if h, ok := metaData["hideAuthor"]; ok {
 		hideAuthor = h.(bool)
+		delete(metaData, "hideAuthor")
 	}
 	if t, ok := metaData["tags"]; ok {
 		tags = t.([]string)
+		delete(metaData, "tags")
 	} else {
 		tags = []string{}
 	}
