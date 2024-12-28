@@ -177,5 +177,5 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 		return
 	})
 	wg.Wait()
-	slog.Debug("Registered pages", "duration", time.Since(start))
+	slog.Info("Registered pages", "duration", time.Since(start))
 }
