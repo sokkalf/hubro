@@ -39,7 +39,19 @@ func Init() {
 	if err != nil {
 		slog.Error("Error parsing base URL", "error", err, "url", config.BaseURL)
 	} else {
+		var port int
 		config.RootPath = path.Path
+		if path.Scheme == "http" && path.Port() == "" {
+			port = 80
+		} else if path.Scheme == "https" && path.Port() == "" {
+			port = 443
+		} else {
+			port, err = strconv.Atoi(path.Port())
+			if err != nil {
+				port = 8080
+			}
+		}
+		config.Port = port
 	}
 	port, ok := os.LookupEnv("HUBRO_PORT")
 	if ok {
