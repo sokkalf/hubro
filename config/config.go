@@ -18,6 +18,8 @@ type HubroConfig struct {
 	Description string
 	RootPath string
 	LegacyRoutesFile string
+	BlogDir string
+	PagesDir string
 }
 
 var Config *HubroConfig
@@ -33,6 +35,8 @@ func Init() {
 		Title: "Hubro",
 		Description: "Hubro is a simple blog engine",
 		LegacyRoutesFile: "./legacyRoutes.json",
+		BlogDir: "./blog",
+		PagesDir: "./pages",
 	}
 
 	baseURL, ok := os.LookupEnv("HUBRO_BASE_URL")
@@ -92,6 +96,14 @@ func Init() {
 	legacyRoutesFile, ok := os.LookupEnv("HUBRO_LEGACY_ROUTES_FILE")
 	if ok {
 		config.LegacyRoutesFile = legacyRoutesFile
+	}
+	blogDir, ok := os.LookupEnv("HUBRO_BLOG_DIR")
+	if ok {
+		config.BlogDir = blogDir
+	}
+	pagesDir, ok := os.LookupEnv("HUBRO_PAGES_DIR")
+	if ok {
+		config.PagesDir = pagesDir
 	}
 	Config = &config
 }

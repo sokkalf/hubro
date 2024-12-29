@@ -23,8 +23,8 @@ func main() {
 	layoutDir := os.DirFS("view/layouts")
 	templateDir := os.DirFS("view/templates")
 	publicDir := os.DirFS("view/public")
-	pagesDir := os.DirFS("pages")
-	blogDir := os.DirFS("blog")
+	pagesDir := os.DirFS(config.Config.PagesDir)
+	blogDir := os.DirFS(config.Config.BlogDir)
 
 	cfg := server.Config{
 		RootPath:    config.Config.RootPath,
