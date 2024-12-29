@@ -1,6 +1,6 @@
 <div class="topnav bg-indigo-950">
 	<a href="/">{{ appTitle }}</a>
-	{{ range listPages "pages" }}
+	{{ range listPages "pages" "" }}
 		{{ if not .Visible }}
 			{{ continue }}
 		{{ end }}

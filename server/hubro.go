@@ -115,12 +115,22 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 		"format_date": func(date time.Time) string {
 			return date.Format("2006-01-02")
 		},
-		"listPages": func(i string) []index.IndexEntry {
+		"listPages": func(i string, filterTag string) []index.IndexEntry {
 			entries := index.GetIndex(i)
 			if entries == nil {
 				return []index.IndexEntry{}
 			} else {
-				return entries.Entries
+				if filterTag == "" {
+					return entries.Entries
+				} else {
+					var filteredEntries []index.IndexEntry
+					for _, entry := range entries.Entries {
+						if slices.Contains(entry.Tags, filterTag) {
+							filteredEntries = append(filteredEntries, entry)
+						}
+					}
+					return filteredEntries
+				}
 			}
 		},
 		"getConfig": func() hc.HubroConfig {
@@ -194,10 +204,18 @@ func (h *Hubro) initVendorDir(vendorDir fs.FS) {
 
 func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
+		tag := ""
+		query := r.URL.Query()
+		if query.Get("tag") != "" {
+			tag = query.Get("tag")
+		}
+
 		// Render the "index.gohtml" template
 		h.Render(w, r, "blogindex", struct {
+			FilterByTag string
 			Title string
 		}{
+			FilterByTag: tag,
 			Title: h.config.Description,
 		})
 	} else {

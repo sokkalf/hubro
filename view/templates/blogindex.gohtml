@@ -1,4 +1,4 @@
-{{ range listPages "blog" }}
+{{ range listPages "blog" .FilterByTag }}
 	{{ if not .Visible }}
 		{{ continue }}
 	{{ end }}
