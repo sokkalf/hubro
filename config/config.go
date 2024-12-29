@@ -16,6 +16,7 @@ type HubroConfig struct {
 	Title string
 	Description string
 	RootPath string
+	LegacyRoutesFile string
 }
 
 var Config *HubroConfig
@@ -29,6 +30,7 @@ func Init() {
 		DisplayAuthorInFeed: false,
 		Title: "Hubro",
 		Description: "Hubro is a simple blog engine",
+		LegacyRoutesFile: "./legacyRoutes.json",
 	}
 
 	baseURL, ok := os.LookupEnv("HUBRO_BASE_URL")
@@ -80,6 +82,10 @@ func Init() {
 	displayAuthorInFeed, ok := os.LookupEnv("HUBRO_DISPLAY_AUTHOR_IN_FEED")
 	if ok {
 		config.DisplayAuthorInFeed, _ = strconv.ParseBool(displayAuthorInFeed)
+	}
+	legacyRoutesFile, ok := os.LookupEnv("HUBRO_LEGACY_ROUTES_FILE")
+	if ok {
+		config.LegacyRoutesFile = legacyRoutesFile
 	}
 	Config = &config
 }

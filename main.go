@@ -47,7 +47,7 @@ func main() {
 	} else {
 		slog.Info("No blog entries found, skipping feeds")
 	}
-	b, err := os.ReadFile("legacyRoutes.json")
+	b, err := os.ReadFile(config.Config.LegacyRoutesFile)
 	if err != nil {
 		slog.Info("No legacy routes found")
 	} else {
