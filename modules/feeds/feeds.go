@@ -9,9 +9,10 @@ import (
 	gorillafeeds "github.com/gorilla/feeds"
 	"github.com/sokkalf/hubro/config"
 	"github.com/sokkalf/hubro/server"
+	"github.com/sokkalf/hubro/index"
 )
 
-func getFeedFromIndex(index *server.Index) *gorillafeeds.Feed {
+func getFeedFromIndex(index *index.Index) *gorillafeeds.Feed {
 	config := config.Config
 	var author *gorillafeeds.Author
 	if config.DisplayAuthorInFeed {
@@ -51,7 +52,7 @@ func getFeedFromIndex(index *server.Index) *gorillafeeds.Feed {
 
 func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
 	start := time.Now()
-	index := options.(*server.Index)
+	index := options.(*index.Index)
 	feed := getFeedFromIndex(index)
 
 	mux.HandleFunc("/rss", func(w http.ResponseWriter, r *http.Request) {

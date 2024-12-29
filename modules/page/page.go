@@ -19,12 +19,13 @@ import (
 
 	"github.com/sokkalf/hubro/server"
 	"github.com/sokkalf/hubro/utils"
+	"github.com/sokkalf/hubro/index"
 )
 
 type PageOptions struct {
 	FilesDir fs.FS
 	IndexSummary bool
-	IndexFunc func(server.IndexEntry)
+	IndexFunc func(index.IndexEntry)
 }
 
 func slugify(s string) string {
@@ -115,7 +116,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 	}
 
 	handlerPath = "/" + slugify(title)
-	opts.IndexFunc(server.IndexEntry{
+	opts.IndexFunc(index.IndexEntry{
 		Title: title,
 		Author: author,
 		Visible: visible,

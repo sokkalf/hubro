@@ -12,6 +12,7 @@ import (
 	"github.com/sokkalf/hubro/modules/page"
 	"github.com/sokkalf/hubro/modules/redirects"
 	"github.com/sokkalf/hubro/server"
+	"github.com/sokkalf/hubro/index"
 )
 
 func main() {
@@ -36,8 +37,8 @@ func main() {
 	}
 	h := server.NewHubro(cfg)
 	h.Use(logging.LogMiddleware())
-	blogIndex := server.NewIndex("blog", config.Config.RootPath+"blog")
-	pageIndex := server.NewIndex("pages", config.Config.RootPath+"page")
+	blogIndex := index.NewIndex("blog", config.Config.RootPath+"blog")
+	pageIndex := index.NewIndex("pages", config.Config.RootPath+"page")
 	h.AddModule("/page", page.Register, page.PageOptions{FilesDir: pagesDir, IndexSummary: false, IndexFunc: pageIndex.AddEntry})
 	h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, IndexSummary: true, IndexFunc: blogIndex.AddEntry})
 	pageIndex.SortBySortOrder()

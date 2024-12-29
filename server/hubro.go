@@ -13,6 +13,7 @@ import (
 	"time"
 
 	hc "github.com/sokkalf/hubro/config"
+	"github.com/sokkalf/hubro/index"
 )
 
 type Config struct {
@@ -113,10 +114,10 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 		"format_date": func(date time.Time) string {
 			return date.Format("2006-01-02")
 		},
-		"listPages": func(index string) []IndexEntry {
-			entries := GetIndex(index)
+		"listPages": func(i string) []index.IndexEntry {
+			entries := index.GetIndex(i)
 			if entries == nil {
-				return []IndexEntry{}
+				return []index.IndexEntry{}
 			} else {
 				return entries.Entries
 			}
