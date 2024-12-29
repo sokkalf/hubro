@@ -8,6 +8,8 @@ import (
 	"github.com/sokkalf/hubro/index"
 )
 
+var generatedTagCloud *template.HTML
+
 func tagCloudMap(idx *index.Index) map[string]int {
 	tagCloud := make(map[string]int)
 	for _, entry := range idx.Entries {
@@ -19,6 +21,9 @@ func tagCloudMap(idx *index.Index) map[string]int {
 }
 
 func GenerateTagCloud(idx *index.Index) template.HTML {
+	if generatedTagCloud != nil {
+		return *generatedTagCloud
+	}
 	tagCloud := tagCloudMap(idx)
 	max := 0
 	for _, count := range tagCloud {
@@ -42,5 +47,7 @@ func GenerateTagCloud(idx *index.Index) template.HTML {
 	for tag, count := range tagCloud {
 		tagCloudHTML += tagHTML(tag, count)
 	}
-	return template.HTML(tagCloudHTML)
+	tmpl := template.HTML(tagCloudHTML)
+	generatedTagCloud = &tmpl
+	return *generatedTagCloud
 }
