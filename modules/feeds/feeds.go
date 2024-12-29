@@ -12,12 +12,18 @@ import (
 
 func getFeedFromIndex(index *server.Index) *gorillafeeds.Feed {
 	config := config.Config
+	var author *gorillafeeds.Author
+	if config.DisplayAuthorInFeed {
+		author = &gorillafeeds.Author{Name: config.AuthorName, Email: config.AuthorEmail}
+	} else {
+		author = nil
+	}
 	feed := &gorillafeeds.Feed{
 		Title:       "Hubro",
 		Link:        &gorillafeeds.Link{Href: config.BaseURL},
 		Description: config.Description,
-		Author:      &gorillafeeds.Author{Name: config.AuthorName, Email: config.AuthorEmail},
-		Created:	 index.Entries[0].Date,
+		Author:      author,
+		Created:     index.Entries[0].Date,
 	}
 
 	feedItems := []*gorillafeeds.Item{}
