@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 
+	"github.com/sokkalf/hubro/config"
 	"github.com/sokkalf/hubro/index"
 )
 
@@ -19,9 +20,24 @@ func tagCloudMap(idx *index.Index) map[string]int {
 
 func GenerateTagCloud(idx *index.Index) template.HTML {
 	tagCloud := tagCloudMap(idx)
+	max := 0
+	for _, count := range tagCloud {
+		if count > max {
+			max = count
+		}
+	}
+	cssTextSizeClasses := []string{"text-xs", "text-sm", "text-base", "text-lg", "text-xl"}
+	cssTextSize := func(count int) string {
+		if count == 0 {
+			return cssTextSizeClasses[0]
+		}
+		return cssTextSizeClasses[((count-1)*len(cssTextSizeClasses))/max]
+	}
+
 	var tagCloudHTML string
 	tagHTML := func(tag string, count int) string {
-		return " <a href=\"/tags/" + tag + "\" class=\"tag-cloud__tag tag-cloud__tag--" + tag + "\">" + tag + fmt.Sprintf("(%d)", count) + "</a>"
+		return fmt.Sprintf(`<span class="%s"><a href="%s?tag=%s">%s</a></span>%s`,
+			cssTextSize(count), config.Config.RootPath, tag, tag, "\n")
 	}
 	for tag, count := range tagCloud {
 		tagCloudHTML += tagHTML(tag, count)
