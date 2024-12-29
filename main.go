@@ -15,9 +15,12 @@ import (
 	"github.com/sokkalf/hubro/index"
 )
 
+const Version = "0.0.1-dev"
+
 func main() {
 	start := time.Now()
 	config.Init()
+	config.Config.Version = Version
 	logging.InitLogger("development")
 	slog.Info("Starting Hubro 🦉")
 	vendorDir := os.DirFS("view/assets/vendor")

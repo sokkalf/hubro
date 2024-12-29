@@ -20,6 +20,7 @@ type HubroConfig struct {
 	LegacyRoutesFile string
 	BlogDir string
 	PagesDir string
+	Version string
 }
 
 var Config *HubroConfig
@@ -37,6 +38,7 @@ func Init() {
 		LegacyRoutesFile: "./legacyRoutes.json",
 		BlogDir: "./blog",
 		PagesDir: "./pages",
+		Version: "0.0.1-dev",
 	}
 
 	baseURL, ok := os.LookupEnv("HUBRO_BASE_URL")
