@@ -74,3 +74,15 @@ footer {
 	/* rounded corners */
 	border-radius: 5px;
 }
+
+.iconlist li {
+	float: left;
+	width: 28px;
+	height: 28px;
+	display: inline;
+	padding: 4px 4px;
+}
+
+#elixir-image {
+	filter: grayscale(100%) invert(100%);
+}
