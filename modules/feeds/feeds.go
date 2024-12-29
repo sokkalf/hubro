@@ -6,15 +6,17 @@ import (
 	"time"
 
 	gorillafeeds "github.com/gorilla/feeds"
+	"github.com/sokkalf/hubro/config"
 	"github.com/sokkalf/hubro/server"
 )
 
 func getFeedFromIndex(index *server.Index) *gorillafeeds.Feed {
+	config := config.Config
 	feed := &gorillafeeds.Feed{
 		Title:       "Hubro",
-		Link:        &gorillafeeds.Link{Href: "http://localhost:8080"},
-		Description: "Hubro is a simple blog engine",
-		Author:      &gorillafeeds.Author{Name: "Christian Lønaas", Email: "email@example.org"},
+		Link:        &gorillafeeds.Link{Href: config.BaseURL},
+		Description: config.Description,
+		Author:      &gorillafeeds.Author{Name: config.AuthorName, Email: config.AuthorEmail},
 		Created:	 time.Now(),
 	}
 
@@ -29,7 +31,7 @@ func getFeedFromIndex(index *server.Index) *gorillafeeds.Feed {
 
 		feedItems = append(feedItems, &gorillafeeds.Item{
 			Title:       entry.Title,
-			Link:        &gorillafeeds.Link{Href: "http://localhost:8080" + entry.Path},
+			Link:        &gorillafeeds.Link{Href: config.BaseURL + entry.Path},
 			Description: summary,
 			Created:     entry.Date,
 			Content:     summary,
