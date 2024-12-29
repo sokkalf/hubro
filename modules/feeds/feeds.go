@@ -17,7 +17,7 @@ func getFeedFromIndex(index *server.Index) *gorillafeeds.Feed {
 		Link:        &gorillafeeds.Link{Href: config.BaseURL},
 		Description: config.Description,
 		Author:      &gorillafeeds.Author{Name: config.AuthorName, Email: config.AuthorEmail},
-		Created:	 time.Now(),
+		Created:	 index.Entries[0].Date,
 	}
 
 	feedItems := []*gorillafeeds.Item{}
