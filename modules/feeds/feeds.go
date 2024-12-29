@@ -3,6 +3,7 @@ package feeds
 import (
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	gorillafeeds "github.com/gorilla/feeds"
@@ -34,10 +35,11 @@ func getFeedFromIndex(index *server.Index) *gorillafeeds.Feed {
 		} else {
 			summary = "Description not available"
 		}
+		baseURL := strings.TrimSuffix(config.BaseURL, "/")
 
 		feedItems = append(feedItems, &gorillafeeds.Item{
 			Title:       entry.Title,
-			Link:        &gorillafeeds.Link{Href: config.BaseURL + entry.Path},
+			Link:        &gorillafeeds.Link{Href: baseURL + entry.Path},
 			Description: summary,
 			Created:     entry.Date,
 			Content:     summary,
