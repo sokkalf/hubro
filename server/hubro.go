@@ -13,6 +13,7 @@ import (
 	"time"
 
 	hc "github.com/sokkalf/hubro/config"
+	"github.com/sokkalf/hubro/helpers"
 	"github.com/sokkalf/hubro/index"
 )
 
@@ -124,6 +125,10 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 		},
 		"getConfig": func() hc.HubroConfig {
 			return h.config
+		},
+		"tagCloud": func(i string) template.HTML {
+			entries := index.GetIndex(i)
+			return helpers.GenerateTagCloud(entries)
 		},
 	}
 
