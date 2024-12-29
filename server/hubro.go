@@ -121,6 +121,9 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 				return entries.Entries
 			}
 		},
+		"getConfig": func() hc.HubroConfig {
+			return h.config
+		},
 	}
 
 	h.Layouts = template.New("root_layout")
@@ -186,7 +189,11 @@ func (h *Hubro) initVendorDir(vendorDir fs.FS) {
 func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
 		// Render the "index.gohtml" template
-		h.Render(w, r, "blogindex", nil)
+		h.Render(w, r, "blogindex", struct {
+			Title string
+		}{
+			Title: h.config.Description,
+		})
 	} else {
 		fs := http.FS(h.publicDir)
 		if !slices.Contains(publicFileWhiteList, strings.TrimPrefix(r.URL.Path, "/")) {
