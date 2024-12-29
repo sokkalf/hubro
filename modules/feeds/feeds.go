@@ -40,7 +40,7 @@ func getFeedFromIndex(index *server.Index) *gorillafeeds.Feed {
 		feedItems = append(feedItems, &gorillafeeds.Item{
 			Title:       entry.Title,
 			Link:        &gorillafeeds.Link{Href: baseURL + entry.Path},
-			Description: summary,
+			Description: entry.Description,
 			Created:     entry.Date,
 			Content:     summary,
 		})

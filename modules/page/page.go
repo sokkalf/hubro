@@ -34,6 +34,7 @@ func slugify(s string) string {
 func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, opts PageOptions) {
 	var handlerPath string
 	var title string
+	var description string
 	var author string
 	var visible bool = true
 	var hideAuthor bool = false
@@ -63,6 +64,10 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 		delete(metaData, "title")
 	} else {
 		title = name
+	}
+	if d, ok := metaData["description"]; ok {
+		description = d.(string)
+		delete(metaData, "description")
 	}
 	if a, ok := metaData["author"]; ok {
 		author = a.(string)
@@ -121,10 +126,12 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 		Tags: tags,
 		Date: date,
 		Summary: summary,
+		Description: description,
 	})
 	mux.HandleFunc(handlerPath, func(w http.ResponseWriter, r *http.Request) {
 		h.Render(w, r, "page", struct {
 			Title string
+			Description string
 			Author string
 			Visible bool
 			Body  template.HTML
@@ -134,6 +141,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 			Date time.Time
 		}{
 			Title: title,
+			Description: description,
 			Author: author,
 			Visible: visible,
 			Body:  template.HTML(buf.String()),

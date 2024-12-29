@@ -12,16 +12,17 @@ type Indices map[string]*Index
 var indices Indices
 
 type IndexEntry struct {
-	Title      string                 `json:"title"`
-	Author     string                 `json:"author"`
-	Path       string                 `json:"path"`
-	Date       time.Time              `json:"date"`
-	SortOrder  int                    `json:"sortOrder"`
-	Metadata   map[string]interface{} `json:"metadata"`
-	Visible    bool                   `json:"visible"`
-	HideAuthor bool                   `json:"hideAuthor"`
-	Tags       []string               `json:"tags"`
-	Summary    *template.HTML         `json:"summary"`
+	Title       string                 `json:"title"`
+	Author      string                 `json:"author"`
+	Path        string                 `json:"path"`
+	Date        time.Time              `json:"date"`
+	SortOrder   int                    `json:"sortOrder"`
+	Metadata    map[string]interface{} `json:"metadata"`
+	Visible     bool                   `json:"visible"`
+	HideAuthor  bool                   `json:"hideAuthor"`
+	Tags        []string               `json:"tags"`
+	Summary     *template.HTML         `json:"summary"`
+	Description string                 `json:"description"`
 }
 
 type Index struct {
