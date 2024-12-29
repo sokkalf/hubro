@@ -12,6 +12,7 @@ type HubroConfig struct {
 	Port    int
 	AuthorName string
 	AuthorEmail string
+	FeedsEnabled bool
 	DisplayAuthorInFeed bool
 	Title string
 	Description string
@@ -27,6 +28,7 @@ func Init() {
 		Port: 8080,
 		AuthorName: "Anonymous",
 		AuthorEmail: "anonymous@example.org",
+		FeedsEnabled: true,
 		DisplayAuthorInFeed: false,
 		Title: "Hubro",
 		Description: "Hubro is a simple blog engine",
@@ -82,6 +84,10 @@ func Init() {
 	displayAuthorInFeed, ok := os.LookupEnv("HUBRO_DISPLAY_AUTHOR_IN_FEED")
 	if ok {
 		config.DisplayAuthorInFeed, _ = strconv.ParseBool(displayAuthorInFeed)
+	}
+	feedsEnabled, ok := os.LookupEnv("HUBRO_FEEDS_ENABLED")
+	if ok {
+		config.FeedsEnabled, _ = strconv.ParseBool(feedsEnabled)
 	}
 	legacyRoutesFile, ok := os.LookupEnv("HUBRO_LEGACY_ROUTES_FILE")
 	if ok {

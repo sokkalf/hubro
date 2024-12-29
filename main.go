@@ -42,10 +42,13 @@ func main() {
 	h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, IndexSummary: true, IndexFunc: blogIndex.AddEntry})
 	pageIndex.SortBySortOrder()
 	blogIndex.SortByDate()
-	if blogIndex.Count() > 0 {
-		h.AddModule("/feeds", feeds.Register, blogIndex)
-	} else {
-		slog.Info("No blog entries found, skipping feeds")
+	if config.Config.FeedsEnabled {
+		if blogIndex.Count() > 0 {
+			h.AddModule("/feeds", feeds.Register, blogIndex)
+		} else {
+			config.Config.FeedsEnabled = false
+			slog.Info("No blog entries found, skipping feeds")
+		}
 	}
 	b, err := os.ReadFile(config.Config.LegacyRoutesFile)
 	if err != nil {
