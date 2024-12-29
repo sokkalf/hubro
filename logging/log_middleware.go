@@ -52,7 +52,12 @@ func LogMiddleware() server.Middleware {
 				ew := ExtendResponseWriter(w)
 				next.ServeHTTP(ew, r)
 				ew.Done()
-				slog.Info(fmt.Sprintf("%s %s", r.Method, r.URL.Path), "remoteaddr", r.RemoteAddr, "status", ew.StatusCode, "duration", time.Since(start))
+				query := r.URL.Query().Encode()
+				if query != "" {
+					slog.Info(fmt.Sprintf("%s %s?%s", r.Method, r.URL.Path, query), "remoteaddr", r.RemoteAddr, "status", ew.StatusCode, "duration", time.Since(start))
+				} else {
+					slog.Info(fmt.Sprintf("%s %s", r.Method, r.URL.Path), "remoteaddr", r.RemoteAddr, "status", ew.StatusCode, "duration", time.Since(start))
+				}
 			})
 		}
 	}
