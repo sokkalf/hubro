@@ -3,6 +3,7 @@ package helpers
 import (
 	"fmt"
 	"html/template"
+	"sort"
 
 	"github.com/sokkalf/hubro/config"
 	"github.com/sokkalf/hubro/index"
@@ -42,14 +43,21 @@ func GenerateTagCloud(idx *index.Index) template.HTML {
 		return cssTextSizeClasses[((count-1)*len(cssTextSizeClasses))/max]
 	}
 
-	var tagCloudHTML string
 	tagHTML := func(tag string, count int) string {
 		return fmt.Sprintf(`<span class="%s"><a href="%s?tag=%s">%s</a></span>%s`,
 			cssTextSize(count), config.Config.RootPath, tag, tag, "\n")
 	}
-	for tag, count := range tagCloud {
-		tagCloudHTML += tagHTML(tag, count)
-	}
+
+    var sortedTags []string
+    for tag := range tagCloud {
+        sortedTags = append(sortedTags, tag)
+    }
+    sort.Strings(sortedTags)
+
+	var tagCloudHTML string
+    for _, tag := range sortedTags {
+        tagCloudHTML += tagHTML(tag, tagCloud[tag])
+    }
 	tmpl := template.HTML(tagCloudHTML)
 	generatedTagCloudMap[idx] = &tmpl
 	return *generatedTagCloudMap[idx]
