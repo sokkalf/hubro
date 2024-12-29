@@ -140,6 +140,9 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 			entries := index.GetIndex(i)
 			return helpers.GenerateTagCloud(entries)
 		},
+		"add": func(a, b int) int {
+			return a + b
+		},
 	}
 
 	h.Layouts = template.New("root_layout")
