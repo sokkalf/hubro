@@ -15,6 +15,7 @@ import (
 	"github.com/sokkalf/hubro/index"
 )
 
+// Overwritten by the build system
 var Version = "0.0.1-dev"
 
 func main() {
