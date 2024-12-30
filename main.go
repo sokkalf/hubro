@@ -11,6 +11,7 @@ import (
 	"github.com/sokkalf/hubro/index"
 	"github.com/sokkalf/hubro/logging"
 	"github.com/sokkalf/hubro/modules/feeds"
+	"github.com/sokkalf/hubro/modules/healthcheck"
 	"github.com/sokkalf/hubro/modules/page"
 	"github.com/sokkalf/hubro/modules/redirects"
 	"github.com/sokkalf/hubro/server"
@@ -42,6 +43,7 @@ func main() {
 	}
 	h := server.NewHubro(cfg)
 	h.Use(logging.LogMiddleware())
+	h.AddModule("/healthz", healthcheck.Register, nil)
 	blogIndex := index.NewIndex("blog", config.Config.RootPath+"blog")
 	pageIndex := index.NewIndex("pages", config.Config.RootPath+"page")
 	h.AddModule("/page", page.Register, page.PageOptions{FilesDir: pagesDir, IndexSummary: false, IndexFunc: pageIndex.AddEntry})

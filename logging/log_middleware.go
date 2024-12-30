@@ -62,6 +62,10 @@ func LogMiddleware() server.Middleware {
 				ew := ExtendResponseWriter(w)
 				next.ServeHTTP(ew, r)
 				ew.Done()
+				if r.URL.Path == "/healthz" || r.URL.Path == "/healthz/" {
+					// Don't log health checks
+					return
+				}
 				remoteAddr, proxied := getRemoteAddr(r)
 				query := r.URL.Query().Encode()
 				if query != "" {
