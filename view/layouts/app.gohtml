@@ -21,6 +21,13 @@
 		{{yield}}
 	</main>
 	{{ template "partials/_footer" . }}
-	<script>hljs.highlightAll();</script>
+	<script>
+		function highlightNewCodeBlocks() {
+			document.querySelectorAll('pre code:not(.hljs)').forEach(function (el) {
+				hljs.highlightElement(el);
+			});
+		}
+		highlightNewCodeBlocks();
+	</script>
 </body>
 </html>
