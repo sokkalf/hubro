@@ -241,7 +241,7 @@ func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Hubro) testHandler(w http.ResponseWriter, r *http.Request) {
-	h.Render(w, r, "test.gohtml", nil)
+	h.Render(w, r, "test", nil)
 }
 
 // pingHandler is a simple route that returns "Pong!" text.
