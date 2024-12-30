@@ -1,5 +1,5 @@
 <div class="topnav bg-indigo-950">
-	<a href="/">{{ appTitle }}</a>
+	<a hx-boost="true" href="/">{{ appTitle }}</a>
 	{{ range listPages "pages" "" }}
 		{{ if not .Visible }}
 			{{ continue }}
