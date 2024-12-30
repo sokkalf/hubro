@@ -194,6 +194,7 @@ func (hu *Hubro) fileServerWithDirectoryListingDisabled(h http.Handler) http.Han
 			hu.ErrorHandler(w, r, http.StatusForbidden, &msg)
 			return
 		}
+		w.Header().Set("Cache-Control", "public, max-age=31536000")
 		h.ServeHTTP(w, r)
 	})
 }
@@ -238,6 +239,7 @@ func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			file.Close()
+			w.Header().Set("Cache-Control", "public, max-age=31536000")
 			http.FileServer(fs).ServeHTTP(w, r)
 		}
 	}
