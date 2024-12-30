@@ -44,7 +44,7 @@ func GenerateTagCloud(idx *index.Index) template.HTML {
 	}
 
 	tagHTML := func(tag string, count int) string {
-		return fmt.Sprintf(`<span class="%s"><a href="%s?tag=%s">%s</a></span>%s`,
+		return fmt.Sprintf(`<span class="%s"><a hx-boost="true" href="%s?tag=%s">%s</a></span>%s`,
 			cssTextSize(count), config.Config.RootPath, tag, tag, "\n")
 	}
 

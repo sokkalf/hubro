@@ -4,7 +4,7 @@
 		{{ if not .Visible }}
 			{{ continue }}
 		{{ end }}
-		<a href="{{ rootPath }}{{ .Path }}">{{ .Title }}</a>
+		<a hx-boost="true" href="{{ rootPath }}{{ .Path }}">{{ .Title }}</a>
 	{{ end }}
 	<!-- Stuff on the right side -->
 	<div class="topnav-right h-6">

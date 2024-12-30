@@ -2,8 +2,27 @@
 	{{ if not .Visible }}
 		{{ continue }}
 	{{ end }}
-	<a href="{{ .Path }}">{{ .Title }}</a>
-	<div>
-		{{ .Summary }}
+	<div class="max-w-full mx-auto bg-white rounded-lg shadow p-6">
+		<h1 class="text-2xl font-semibold">
+			<a hx-boost="true" href="{{ rootPath }}{{ .Path }}">{{ .Title }}</a>
+		</h1>
+		<div class="tags py-2">
+			{{ range .Tags }}
+			<span class="tag rounded-full px-3 py-1 text-sm bg-indigo-300">{{ . }}</span>
+			{{ end }}
+		</div>
+		<div class="author py-2">
+			<p class="text-gray-500 text-sm">
+			{{ if not .HideAuthor }}
+				{{ if .Author }}
+					by {{ .Author }}{{ if not .Date.IsZero }} on {{ .Date | format_date }}{{ end }}
+				{{ end }}
+			{{ end }}
+			</p>
+		</div>
+		<div class="markdown-body">
+			{{.Summary}}
+		</div>
 	</div>
+	<div class="py-4 spacer bg-grey-200"><div>
 {{ end }}
