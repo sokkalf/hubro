@@ -9,7 +9,9 @@
 		</h1>
 		<div class="tags py-2">
 			{{ range .Tags }}
-			<span class="tag rounded-full px-3 py-1 text-sm bg-indigo-300">{{ . }}</span>
+			<span class="tag rounded-full mx-1 px-3 py-1 text-sm bg-indigo-300">
+				<a hx-boost="true" href="{{ rootPath }}?tag={{ . }}">{{ . }}</a>
+			</span>
 			{{ end }}
 		</div>
 		<div class="author py-2">
