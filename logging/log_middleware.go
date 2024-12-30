@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/sokkalf/hubro/server"
@@ -44,6 +45,15 @@ func (w *CustomResponseWriter) Done() {
 	return
 }
 
+func getRemoteAddr(r *http.Request) (string, bool) {
+	xff := r.Header.Get("X-Forwarded-For")
+	if xff != "" {
+		parts := strings.Split(xff, ",")
+		return strings.TrimSpace(parts[0]), true
+	}
+	return r.RemoteAddr, false
+}
+
 func LogMiddleware() server.Middleware {
 	return func(h *server.Hubro) func(http.Handler) http.Handler {
 		return func(next http.Handler) http.Handler {
@@ -52,11 +62,14 @@ func LogMiddleware() server.Middleware {
 				ew := ExtendResponseWriter(w)
 				next.ServeHTTP(ew, r)
 				ew.Done()
+				remoteAddr, proxied := getRemoteAddr(r)
 				query := r.URL.Query().Encode()
 				if query != "" {
-					slog.Info(fmt.Sprintf("%s %s?%s", r.Method, r.URL.Path, query), "remoteaddr", r.RemoteAddr, "status", ew.StatusCode, "duration", time.Since(start))
+					slog.Info(fmt.Sprintf("%s %s?%s", r.Method, r.URL.Path, query),
+						"remoteaddr", remoteAddr, "proxied", proxied, "status", ew.StatusCode, "duration", time.Since(start))
 				} else {
-					slog.Info(fmt.Sprintf("%s %s", r.Method, r.URL.Path), "remoteaddr", r.RemoteAddr, "status", ew.StatusCode, "duration", time.Since(start))
+					slog.Info(fmt.Sprintf("%s %s", r.Method, r.URL.Path),
+						"remoteaddr", remoteAddr, "proxied", proxied, "status", ew.StatusCode, "duration", time.Since(start))
 				}
 			})
 		}
