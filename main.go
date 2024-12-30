@@ -15,7 +15,7 @@ import (
 	"github.com/sokkalf/hubro/index"
 )
 
-const Version = "0.0.1-dev"
+var Version = "0.0.1-dev"
 
 func main() {
 	start := time.Now()
