@@ -112,6 +112,9 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 			slog.Warn("yield called unexpectedly")
 			return "", fmt.Errorf("yield called unexpectedly.")
 		},
+		"boosted": func() bool {
+			return false
+		},
 		"format_date": func(date time.Time) string {
 			return date.Format("2006-01-02")
 		},
@@ -278,6 +281,9 @@ func (h *Hubro) RenderWithLayout(w http.ResponseWriter, r *http.Request, layoutN
 			buf := bytes.NewBuffer(nil)
 			err := h.Templates.ExecuteTemplate(buf, templateName, data)
 			return template.HTML(buf.String()), err
+		},
+		"boosted": func() bool {
+			return r.Header.Get("HX-Boosted") == "true"
 		},
 	}
 	layout := h.Layouts.Lookup(layoutName)
