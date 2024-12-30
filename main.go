@@ -17,7 +17,7 @@ import (
 )
 
 // Overwritten by the build system
-var Version = "0.0.1-dev"
+var Version = "v0.0.1-dev"
 
 func main() {
 	start := time.Now()
