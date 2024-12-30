@@ -294,6 +294,17 @@ func (h *Hubro) RenderWithLayout(w http.ResponseWriter, r *http.Request, layoutN
 	}
 }
 
+func (h *Hubro) RenderWithoutLayout(w http.ResponseWriter, r *http.Request, templateName string, data interface{}) {
+	if data == nil {
+		data = map[string]interface{}{}
+	}
+	err := h.Templates.ExecuteTemplate(w, templateName, data)
+	if err != nil {
+		slog.Error("can't render template", "template", templateName, "error", err)
+		http.Error(w, "Failed to render template", http.StatusInternalServerError)
+	}
+}
+
 func (h *Hubro) Render(w http.ResponseWriter, r *http.Request, templateName string, data interface{}) {
 	h.RenderWithLayout(w, r, rootLayout, templateName, data)
 }

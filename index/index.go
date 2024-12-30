@@ -53,6 +53,10 @@ func GetIndex(name string) *Index {
 	return nil
 }
 
+func (i *Index) GetName() string {
+	return i.name
+}
+
 func (i *Index) AddEntry(e IndexEntry) {
 	e.Path = i.rootPath + e.Path
 	i.Entries = append(i.Entries, e)

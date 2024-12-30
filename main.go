@@ -6,13 +6,14 @@ import (
 	"os"
 	"time"
 
+	pagesAPI "github.com/sokkalf/hubro/api/pages"
 	"github.com/sokkalf/hubro/config"
+	"github.com/sokkalf/hubro/index"
 	"github.com/sokkalf/hubro/logging"
 	"github.com/sokkalf/hubro/modules/feeds"
 	"github.com/sokkalf/hubro/modules/page"
 	"github.com/sokkalf/hubro/modules/redirects"
 	"github.com/sokkalf/hubro/server"
-	"github.com/sokkalf/hubro/index"
 )
 
 // Overwritten by the build system
@@ -47,6 +48,8 @@ func main() {
 	h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, IndexSummary: true, IndexFunc: blogIndex.AddEntry})
 	pageIndex.SortBySortOrder()
 	blogIndex.SortByDate()
+	h.AddModule("/api/pages", pagesAPI.Register, []*index.Index{pageIndex, blogIndex})
+
 	if config.Config.FeedsEnabled {
 		if blogIndex.Count() > 0 {
 			h.AddModule("/feeds", feeds.Register, blogIndex)

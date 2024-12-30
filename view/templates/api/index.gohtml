@@ -1,0 +1,9 @@
+{{ range . }}
+	{{ if not .Visible }}
+		{{ continue }}
+	{{ end }}
+	<a href="{{ .Path }}">{{ .Title }}</a>
+	<div>
+		{{ .Summary }}
+	</div>
+{{ end }}
