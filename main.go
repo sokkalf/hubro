@@ -23,7 +23,7 @@ func main() {
 	start := time.Now()
 	config.Init()
 	config.Config.Version = Version
-	logging.InitLogger("development")
+	logging.InitLogger()
 	slog.Info("Starting Hubro 🦉")
 	vendorDir := os.DirFS("view/assets/vendor")
 	layoutDir := os.DirFS("view/layouts")

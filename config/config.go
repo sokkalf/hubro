@@ -8,41 +8,44 @@ import (
 )
 
 type HubroConfig struct {
-	BaseURL string
-	Port    int
-	AuthorName string
-	AuthorEmail string
-	FeedsEnabled bool
+	BaseURL             string
+	Port                int
+	AuthorName          string
+	AuthorEmail         string
+	FeedsEnabled        bool
 	DisplayAuthorInFeed bool
-	Title string
-	Description string
-	RootPath string
-	LegacyRoutesFile string
-	BlogDir string
-	PagesDir string
-	Version string
+	Title               string
+	Description         string
+	RootPath            string
+	LegacyRoutesFile    string
+	BlogDir             string
+	PagesDir            string
+	Version             string
+	Environment         string
+	GelfEndpoint		*string
 }
 
 var Config *HubroConfig
 
 func Init() {
 	config := HubroConfig{
-		BaseURL: "http://localhost:8080/",
-		Port: 8080,
-		AuthorName: "Anonymous",
-		AuthorEmail: "anonymous@example.org",
-		FeedsEnabled: true,
+		BaseURL:             "http://localhost:8080/",
+		Port:                8080,
+		AuthorName:          "Anonymous",
+		AuthorEmail:         "anonymous@example.org",
+		FeedsEnabled:        true,
 		DisplayAuthorInFeed: false,
-		Title: "Hubro",
-		Description: "Hubro is a simple blog engine",
-		LegacyRoutesFile: "./legacyRoutes.json",
-		BlogDir: "./blog",
-		PagesDir: "./pages",
-		Version: "0.0.1-dev",
+		Title:               "Hubro",
+		Description:         "Hubro is a simple blog engine",
+		LegacyRoutesFile:    "./legacyRoutes.json",
+		BlogDir:             "./blog",
+		PagesDir:            "./pages",
+		Version:             "0.0.1-dev",
+		Environment:         "development",
+		GelfEndpoint:        nil,
 	}
 
-	baseURL, ok := os.LookupEnv("HUBRO_BASE_URL")
-	if ok {
+	if baseURL, ok := os.LookupEnv("HUBRO_BASE_URL"); ok {
 		config.BaseURL = baseURL
 	}
 	path, err := url.Parse(config.BaseURL)
@@ -63,49 +66,45 @@ func Init() {
 		}
 		config.Port = port
 	}
-	port, ok := os.LookupEnv("HUBRO_PORT")
-	if ok {
+	if port, ok := os.LookupEnv("HUBRO_PORT"); ok {
 		var err error
 		config.Port, err = strconv.Atoi(port)
 		if err != nil {
 			config.Port = 8080
 		}
 	}
-	authorName, ok := os.LookupEnv("HUBRO_AUTHOR_NAME")
-	if ok {
+	if authorName, ok := os.LookupEnv("HUBRO_AUTHOR_NAME"); ok {
 		config.AuthorName = authorName
 	}
-	authorEmail, ok := os.LookupEnv("HUBRO_AUTHOR_EMAIL")
-	if ok {
+	if authorEmail, ok := os.LookupEnv("HUBRO_AUTHOR_EMAIL"); ok {
 		config.AuthorEmail = authorEmail
 	}
-	title, ok := os.LookupEnv("HUBRO_TITLE")
-	if ok {
+	if title, ok := os.LookupEnv("HUBRO_TITLE"); ok {
 		config.Title = title
 	}
-	description, ok := os.LookupEnv("HUBRO_DESCRIPTION")
-	if ok {
+	if description, ok := os.LookupEnv("HUBRO_DESCRIPTION"); ok {
 		config.Description = description
 	}
-	displayAuthorInFeed, ok := os.LookupEnv("HUBRO_DISPLAY_AUTHOR_IN_FEED")
-	if ok {
+	if displayAuthorInFeed, ok := os.LookupEnv("HUBRO_DISPLAY_AUTHOR_IN_FEED"); ok {
 		config.DisplayAuthorInFeed, _ = strconv.ParseBool(displayAuthorInFeed)
 	}
-	feedsEnabled, ok := os.LookupEnv("HUBRO_FEEDS_ENABLED")
-	if ok {
+	if feedsEnabled, ok := os.LookupEnv("HUBRO_FEEDS_ENABLED"); ok {
 		config.FeedsEnabled, _ = strconv.ParseBool(feedsEnabled)
 	}
-	legacyRoutesFile, ok := os.LookupEnv("HUBRO_LEGACY_ROUTES_FILE")
-	if ok {
+	if legacyRoutesFile, ok := os.LookupEnv("HUBRO_LEGACY_ROUTES_FILE"); ok {
 		config.LegacyRoutesFile = legacyRoutesFile
 	}
-	blogDir, ok := os.LookupEnv("HUBRO_BLOG_DIR")
-	if ok {
+	if blogDir, ok := os.LookupEnv("HUBRO_BLOG_DIR"); ok {
 		config.BlogDir = blogDir
 	}
-	pagesDir, ok := os.LookupEnv("HUBRO_PAGES_DIR")
-	if ok {
+	if pagesDir, ok := os.LookupEnv("HUBRO_PAGES_DIR"); ok {
 		config.PagesDir = pagesDir
+	}
+	if environment, ok := os.LookupEnv("HUBRO_ENVIRONMENT"); ok {
+		config.Environment = environment
+	}
+	if gelfEndpoint, ok := os.LookupEnv("HUBRO_GELF_ENDPOINT"); ok {
+		config.GelfEndpoint = &gelfEndpoint
 	}
 	Config = &config
 }
