@@ -1,6 +1,7 @@
 package index
 
 import (
+	"fmt"
 	"html/template"
 	"log/slog"
 	"sort"
@@ -62,15 +63,24 @@ func (i *Index) GetName() string {
 	return i.name
 }
 
-func (i *Index) AddEntry(e IndexEntry) {
+func (i *Index) AddEntry(e IndexEntry) error {
+	if e.Id == "" {
+		return fmt.Errorf("entry ID cannot be empty")
+	}
+	if i.GetEntry(e.Id) != nil {
+		return fmt.Errorf("entry with ID %s already exists", e.Id)
+	}
 	e.Path = i.rootPath + e.Path
 	i.lookupMutex.Lock()
 	i.Entries = append(i.Entries, e)
 	i.lookup[e.Id] = &e
 	i.lookupMutex.Unlock()
+	return nil
 }
 
 func (i *Index) GetEntry(id string) *IndexEntry {
+	i.lookupMutex.RLock()
+	defer i.lookupMutex.RUnlock()
 	if e, ok := i.lookup[id]; ok {
 		return e
 	}
