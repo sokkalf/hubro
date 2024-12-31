@@ -10,6 +10,7 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	hc "github.com/sokkalf/hubro/config"
@@ -59,6 +60,8 @@ var VendorLibs map[string]string = map[string]string{
 	"alpine.js":    "/vendor/alpine.js/alpine.min.js",
 	"highlight.js": "/vendor/highlight/highlight.min.js",
 }
+
+var addTemplateMutex sync.Mutex
 
 func (h *Hubro) Use(m Middleware) {
 	h.middlewares = append(h.middlewares, m)
@@ -160,8 +163,10 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 					slog.Error("Error reading layout file", "layout", path, "error", err)
 					panic(err)
 				}
+				addTemplateMutex.Lock()
 				h.Layouts = template.Must(h.Layouts.New(name).Funcs(defaultFuncMap).Parse(string(content)))
 				slog.Debug("Parsed layout", "layout", h.Layouts.Name(), "duration", time.Since(start))
+				addTemplateMutex.Unlock()
 			}()
 		}
 		return nil
@@ -179,8 +184,10 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 					slog.Error("Error reading template file", "template", path, "error", err)
 					panic(err)
 				}
+				addTemplateMutex.Lock()
 				h.Templates = template.Must(h.Templates.New(name).Funcs(defaultFuncMap).Parse(string(content)))
 				slog.Debug("Parsed template", "template", h.Templates.Name(), "duration", time.Since(start))
+				addTemplateMutex.Unlock()
 			}()
 		}
 		return nil
