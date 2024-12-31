@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"log/slog"
 	"sort"
+	"sync"
 	"time"
 )
 
@@ -12,6 +13,7 @@ type Indices map[string]*Index
 var indices Indices
 
 type IndexEntry struct {
+	Id          string                 `json:"id"`
 	Title       string                 `json:"title"`
 	Author      string                 `json:"author"`
 	Path        string                 `json:"path"`
@@ -22,13 +24,16 @@ type IndexEntry struct {
 	HideAuthor  bool                   `json:"hideAuthor"`
 	Tags        []string               `json:"tags"`
 	Summary     *template.HTML         `json:"summary"`
+	Body        *template.HTML         `json:"body"`
 	Description string                 `json:"description"`
 }
 
 type Index struct {
-	Entries  []IndexEntry `json:"entries"`
-	rootPath string
-	name     string
+	Entries     []IndexEntry `json:"entries"`
+	rootPath    string
+	name        string
+	lookup      map[string]*IndexEntry
+	lookupMutex sync.RWMutex
 }
 
 func NewIndex(name string, rootPath string) *Index {
@@ -41,7 +46,7 @@ func NewIndex(name string, rootPath string) *Index {
 		return i
 	}
 
-	entry := &Index{name: name, rootPath: rootPath}
+	entry := &Index{name: name, rootPath: rootPath, lookup: make(map[string]*IndexEntry)}
 	indices[name] = entry
 	return entry
 }
@@ -60,6 +65,16 @@ func (i *Index) GetName() string {
 func (i *Index) AddEntry(e IndexEntry) {
 	e.Path = i.rootPath + e.Path
 	i.Entries = append(i.Entries, e)
+	i.lookupMutex.Lock()
+	i.lookup[e.Id] = &e
+	i.lookupMutex.Unlock()
+}
+
+func (i *Index) GetEntry(id string) *IndexEntry {
+	if e, ok := i.lookup[id]; ok {
+		return e
+	}
+	return nil
 }
 
 func (i *Index) SortBySortOrder() {
