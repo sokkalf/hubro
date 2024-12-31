@@ -117,7 +117,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 
 	slug := slugify(title)
 	handlerPath := "/" + slugify(title)
-	indexFunc(index.IndexEntry{
+	err = indexFunc(index.IndexEntry{
 		Id:          slug,
 		Title:       title,
 		Description: description,
@@ -132,6 +132,10 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 		Summary:     summary,
 		Body:        body,
 	})
+	if err != nil {
+		slog.Warn("Error adding page to index", "page", name, "error", err)
+		return
+	}
 	slog.Debug("Parsed page", "page", name, "title", title, "path", prefix+handlerPath, "duration", time.Since(start))
 }
 
@@ -150,21 +154,14 @@ func handler(h *server.Hubro, mux *http.ServeMux, index *index.Index) http.Handl
 	}
 }
 
-func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
-	start := time.Now()
+func scanMarkdownFiles(prefix string, h *server.Hubro, mux *http.ServeMux, opts PageOptions) {
 	var wg sync.WaitGroup
-	opts, ok := options.(PageOptions)
-	if !ok {
-		slog.Error("Invalid options for page module")
-		return
-	}
-	filesDir := opts.FilesDir
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM, meta.Meta),
 		goldmark.WithParserOptions(parser.WithAutoHeadingID()),
 		goldmark.WithRendererOptions(html.WithUnsafe()),
 	)
-	fs.WalkDir(filesDir, ".", func(path string, d fs.DirEntry, err error) error {
+	fs.WalkDir(opts.FilesDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".md") {
 			wg.Add(1)
 			go func() {
@@ -174,7 +171,16 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 		}
 		return nil
 	})
-	mux.HandleFunc("/", handler(h, mux, opts.Index))
 	wg.Wait()
+}
+
+func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
+	start := time.Now()
+	opts, ok := options.(PageOptions)
+	if !ok {
+		slog.Error("Invalid options for page module")
+	}
+	scanMarkdownFiles(prefix, h, mux, opts)
+	mux.HandleFunc("/", handler(h, mux, opts.Index))
 	slog.Info("Registered pages", "duration", time.Since(start))
 }
