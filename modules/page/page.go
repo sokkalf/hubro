@@ -27,11 +27,14 @@ type PageOptions struct {
 	Index    *index.Index
 }
 
+var indexedPages = make(map[*index.Index][]string)
+var indexedPagesMutex sync.RWMutex
+
 func slugify(s string) string {
 	return slug.Make(s)
 }
 
-func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, opts PageOptions) {
+func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, opts PageOptions) error {
 	var title string
 	var description string
 	var author string
@@ -50,12 +53,12 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 	content, err := fs.ReadFile(opts.FilesDir, path)
 	if err != nil {
 		slog.Error("Error reading page file", "page", path, "error", err)
-		return
+		return err
 	}
 	context := parser.NewContext()
 	if err := md.Convert(content, &buf, parser.WithContext(context)); err != nil {
 		slog.Error("Error converting markdown", "page", path, "error", err)
-		return
+		return err
 	}
 	metaData := meta.Get(context)
 	if t, ok := metaData["title"]; ok {
@@ -133,10 +136,11 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 		Body:        body,
 	})
 	if err != nil {
-		slog.Warn("Error adding page to index", "page", name, "error", err)
-		return
+		slog.Warn("Error adding page to index", "page", name, "error", err, "index", opts.Index.GetName())
+		return err
 	}
 	slog.Debug("Parsed page", "page", name, "title", title, "path", prefix+handlerPath, "duration", time.Since(start))
+	return nil
 }
 
 func handler(h *server.Hubro, mux *http.ServeMux, index *index.Index) http.HandlerFunc {
@@ -154,24 +158,42 @@ func handler(h *server.Hubro, mux *http.ServeMux, index *index.Index) http.Handl
 	}
 }
 
-func scanMarkdownFiles(prefix string, h *server.Hubro, mux *http.ServeMux, opts PageOptions) {
-	var wg sync.WaitGroup
+func scanMarkdownFiles(prefix string, h *server.Hubro, mux *http.ServeMux, opts PageOptions) int {
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM, meta.Meta),
 		goldmark.WithParserOptions(parser.WithAutoHeadingID()),
 		goldmark.WithRendererOptions(html.WithUnsafe()),
 	)
+	filesScanned := 0
 	fs.WalkDir(opts.FilesDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".md") {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				parse(prefix, h, mux, md, path, opts)
-			}()
+			indexedPagesMutex.Lock()
+			if indexedPages[opts.Index] == nil {
+				slog.Debug("Initializing indexed pages", "index", opts.Index.GetName())
+				indexedPages[opts.Index] = make([]string, 0)
+			}
+			var alreadyIndexed bool
+			for _, p := range indexedPages[opts.Index] {
+				if p == path {
+					alreadyIndexed = true
+				}
+			}
+			indexedPagesMutex.Unlock()
+			if !alreadyIndexed {
+				err := parse(prefix, h, mux, md, path, opts)
+				if err != nil {
+					slog.Error("Error parsing page", "page", path, "error", err)
+				} else {
+					indexedPagesMutex.Lock()
+					indexedPages[opts.Index] = append(indexedPages[opts.Index], path)
+					filesScanned++
+					indexedPagesMutex.Unlock()
+				}
+			}
 		}
 		return nil
 	})
-	wg.Wait()
+	return filesScanned
 }
 
 func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
@@ -181,6 +203,19 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 		slog.Error("Invalid options for page module")
 	}
 	scanMarkdownFiles(prefix, h, mux, opts)
+	opts.Index.Sort()
 	mux.HandleFunc("/", handler(h, mux, opts.Index))
 	slog.Info("Registered pages", "duration", time.Since(start))
+	slog.Debug("Scanning for new pages every 5 minutes")
+
+	go func() {
+		for {
+			time.Sleep(5 * time.Minute)
+			n := scanMarkdownFiles(prefix, h, mux, opts)
+			if n > 0 {
+				slog.Info("Found new pages", "index", opts.Index.GetName(), "new", n)
+				opts.Index.Sort()
+			}
+		}
+	}()
 }

@@ -46,18 +46,18 @@ func main() {
 	h.Use(logging.LogMiddleware())
 	h.AddModule("/healthz", healthcheck.Register, nil)
 	pageIndex := index.NewIndex("pages", config.Config.RootPath+"page")
+	pageIndex.SetSortMode(index.SortBySortOrder)
 	blogIndex := index.NewIndex("blog", config.Config.RootPath+"blog")
+	blogIndex.SetSortMode(index.SortByDate)
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 	go func () {
 		defer wg.Done()
 		h.AddModule("/page", page.Register, page.PageOptions{FilesDir: pagesDir, Index: pageIndex})
-		pageIndex.SortBySortOrder()
 	}()
 	go func () {
 		defer wg.Done()
 		h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, Index: blogIndex})
-		blogIndex.SortByDate()
 	}()
 	wg.Wait()
 	h.AddModule("/api/pages", pagesAPI.Register, []*index.Index{pageIndex, blogIndex})

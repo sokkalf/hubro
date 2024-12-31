@@ -29,12 +29,19 @@ type IndexEntry struct {
 	Description string                 `json:"description"`
 }
 
+const (
+	SortBySortOrder = iota
+	SortByDate
+)
+
 type Index struct {
 	Entries     []IndexEntry `json:"entries"`
 	rootPath    string
 	name        string
 	lookup      map[string]*IndexEntry
 	lookupMutex sync.RWMutex
+	sortMutex   sync.Mutex
+	sortMode	int
 }
 
 func NewIndex(name string, rootPath string) *Index {
@@ -47,7 +54,7 @@ func NewIndex(name string, rootPath string) *Index {
 		return i
 	}
 
-	entry := &Index{name: name, rootPath: rootPath, lookup: make(map[string]*IndexEntry)}
+	entry := &Index{name: name, rootPath: rootPath, lookup: make(map[string]*IndexEntry), sortMode: SortBySortOrder}
 	indices[name] = entry
 	return entry
 }
@@ -61,6 +68,15 @@ func GetIndex(name string) *Index {
 
 func (i *Index) GetName() string {
 	return i.name
+}
+
+func (i *Index) SetSortMode(mode int) {
+	if mode == SortBySortOrder || mode == SortByDate {
+		i.sortMode = mode
+	} else {
+		slog.Warn("Invalid sort mode", "mode", mode)
+		i.sortMode = SortBySortOrder
+	}
 }
 
 func (i *Index) AddEntry(e IndexEntry) error {
@@ -87,22 +103,37 @@ func (i *Index) GetEntry(id string) *IndexEntry {
 	return nil
 }
 
+func (i *Index) Sort() {
+	switch i.sortMode {
+	case SortBySortOrder:
+		i.SortBySortOrder()
+	case SortByDate:
+		i.SortByDate()
+	default:
+		slog.Warn("Invalid sort mode", "mode", i.sortMode)
+	}
+}
+
 func (i *Index) SortBySortOrder() {
+	i.sortMutex.Lock()
 	if i.Entries == nil {
 		return
 	}
 	sort.Slice(i.Entries, func(j, k int) bool {
 		return i.Entries[j].SortOrder < i.Entries[k].SortOrder
 	})
+	i.sortMutex.Unlock()
 }
 
 func (i *Index) SortByDate() {
+	i.sortMutex.Lock()
 	if i.Entries == nil {
 		return
 	}
 	sort.Slice(i.Entries, func(j, k int) bool {
 		return i.Entries[k].Date.Before(i.Entries[j].Date)
 	})
+	i.sortMutex.Unlock()
 }
 
 func (i *Index) Count() int {
