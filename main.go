@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"os"
+	"sync"
 	"time"
 
 	pagesAPI "github.com/sokkalf/hubro/api/pages"
@@ -44,12 +45,21 @@ func main() {
 	h := server.NewHubro(cfg)
 	h.Use(logging.LogMiddleware())
 	h.AddModule("/healthz", healthcheck.Register, nil)
-	blogIndex := index.NewIndex("blog", config.Config.RootPath+"blog")
 	pageIndex := index.NewIndex("pages", config.Config.RootPath+"page")
-	h.AddModule("/page", page.Register, page.PageOptions{FilesDir: pagesDir, Index: pageIndex})
-	h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, Index: blogIndex})
-	pageIndex.SortBySortOrder()
-	blogIndex.SortByDate()
+	blogIndex := index.NewIndex("blog", config.Config.RootPath+"blog")
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	go func () {
+		defer wg.Done()
+		h.AddModule("/page", page.Register, page.PageOptions{FilesDir: pagesDir, Index: pageIndex})
+		pageIndex.SortBySortOrder()
+	}()
+	go func () {
+		defer wg.Done()
+		h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, Index: blogIndex})
+		blogIndex.SortByDate()
+	}()
+	wg.Wait()
 	h.AddModule("/api/pages", pagesAPI.Register, []*index.Index{pageIndex, blogIndex})
 
 	if config.Config.FeedsEnabled {
