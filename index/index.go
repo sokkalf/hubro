@@ -64,8 +64,8 @@ func (i *Index) GetName() string {
 
 func (i *Index) AddEntry(e IndexEntry) {
 	e.Path = i.rootPath + e.Path
-	i.Entries = append(i.Entries, e)
 	i.lookupMutex.Lock()
+	i.Entries = append(i.Entries, e)
 	i.lookup[e.Id] = &e
 	i.lookupMutex.Unlock()
 }
