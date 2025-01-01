@@ -147,9 +147,6 @@ func (i *Index) SortBySortOrder() {
 	sort.Slice(i.Entries, func(j, k int) bool {
 		return i.Entries[j].SortOrder < i.Entries[k].SortOrder
 	})
-	go func() {
-		i.ResetChan <- true
-	}()
 	i.sortMutex.Unlock()
 }
 
@@ -161,9 +158,6 @@ func (i *Index) SortByDate() {
 	sort.Slice(i.Entries, func(j, k int) bool {
 		return i.Entries[k].Date.Before(i.Entries[j].Date)
 	})
-	go func() {
-		i.ResetChan <- true
-	}()
 	i.sortMutex.Unlock()
 }
 

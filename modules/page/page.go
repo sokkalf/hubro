@@ -236,6 +236,7 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 			if n > 0 {
 				slog.Info("Found new or updated pages", "index", opts.Index.GetName(), "new", n)
 				opts.Index.Sort()
+				opts.Index.ResetChan <- true
 			}
 		}
 	}()
