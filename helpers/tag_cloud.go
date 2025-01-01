@@ -48,12 +48,10 @@ func GenerateTagCloud(idx *index.Index) template.HTML {
 		}
 	}
 
-	cssTextSizeClasses := []string{"text-xs", "text-sm", "text-base", "text-lg", "text-xl"}
+	cssTextSizeClasses := []string{"text-xs", "text-sm", "text-base", "text-lg", "text-xl", "text-2xl", "text-3xl", "text-4xl"}
 	cssTextSize := func(count int) string {
-		if count == 0 {
-			return cssTextSizeClasses[0]
-		}
-		return cssTextSizeClasses[((count-1)*len(cssTextSizeClasses))/max]
+		count-- // 0-indexed, and count is guaranteed to be at least 1
+		return cssTextSizeClasses[((count)*len(cssTextSizeClasses))/max]
 	}
 
 	tagHTML := func(tag string, count int) string {
