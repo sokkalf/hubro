@@ -26,15 +26,19 @@ type PageOptions struct {
 	FilesDir fs.FS
 	Index    *index.Index
 }
+type indexedPage struct {
+	path    string
+	modTime time.Time
+}
 
-var indexedPages = make(map[*index.Index][]string)
+var indexedPages = make(map[*index.Index][]indexedPage)
 var indexedPagesMutex sync.RWMutex
 
 func slugify(s string) string {
 	return slug.Make(s)
 }
 
-func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, opts PageOptions) error {
+func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, opts PageOptions, isUpdate bool) error {
 	var title string
 	var description string
 	var author string
@@ -46,7 +50,13 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 	var body *template.HTML
 	var date time.Time
 	var buf bytes.Buffer
-	indexFunc := opts.Index.AddEntry
+
+	var indexFunc func(index.IndexEntry) error
+	if isUpdate {
+		indexFunc = opts.Index.UpdateEntry
+	} else {
+		indexFunc = opts.Index.AddEntry
+	}
 
 	start := time.Now()
 	name := strings.TrimSuffix(path, ".md")
@@ -167,25 +177,36 @@ func scanMarkdownFiles(prefix string, h *server.Hubro, mux *http.ServeMux, opts 
 	filesScanned := 0
 	fs.WalkDir(opts.FilesDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".md") {
+			fi, _ := d.Info()
 			indexedPagesMutex.Lock()
 			if indexedPages[opts.Index] == nil {
 				slog.Debug("Initializing indexed pages", "index", opts.Index.GetName())
-				indexedPages[opts.Index] = make([]string, 0)
+				indexedPages[opts.Index] = make([]indexedPage, 0)
 			}
-			var alreadyIndexed bool
+			modTime := fi.ModTime()
+			var alreadyIndexed bool = false
+			var isUpdate bool = false
 			for _, p := range indexedPages[opts.Index] {
-				if p == path {
+				if p.path == path && p.modTime == modTime {
 					alreadyIndexed = true
+				} else if p.path == path && p.modTime != modTime {
+					isUpdate = true
 				}
 			}
+			idxVal := indexedPage{path: path, modTime: modTime}
 			indexedPagesMutex.Unlock()
 			if !alreadyIndexed {
-				err := parse(prefix, h, mux, md, path, opts)
+				var err error
+				if isUpdate {
+					err = parse(prefix, h, mux, md, path, opts, true)
+				} else {
+					err = parse(prefix, h, mux, md, path, opts, false)
+				}
 				if err != nil {
 					slog.Error("Error parsing page", "page", path, "error", err)
 				} else {
 					indexedPagesMutex.Lock()
-					indexedPages[opts.Index] = append(indexedPages[opts.Index], path)
+					indexedPages[opts.Index] = append(indexedPages[opts.Index], idxVal)
 					filesScanned++
 					indexedPagesMutex.Unlock()
 				}

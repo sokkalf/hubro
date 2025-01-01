@@ -94,6 +94,26 @@ func (i *Index) AddEntry(e IndexEntry) error {
 	return nil
 }
 
+func (i *Index) UpdateEntry(e IndexEntry) error {
+	if e.Id == "" {
+		return fmt.Errorf("entry ID cannot be empty")
+	}
+	if i.GetEntry(e.Id) == nil {
+		return fmt.Errorf("entry with ID %s does not exist", e.Id)
+	}
+	e.Path = i.rootPath + e.Path
+	i.lookupMutex.Lock()
+	for j, entry := range i.Entries {
+		if entry.Id == e.Id {
+			i.Entries[j] = e
+			i.lookup[e.Id] = &e
+			break
+		}
+	}
+	i.lookupMutex.Unlock()
+	return nil
+}
+
 func (i *Index) GetEntry(id string) *IndexEntry {
 	i.lookupMutex.RLock()
 	defer i.lookupMutex.RUnlock()

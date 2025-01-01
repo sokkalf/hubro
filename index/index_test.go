@@ -170,3 +170,68 @@ func TestConcurrentAdd(t *testing.T) {
 		t.Errorf("Expected %d entries after concurrency test, got %d", totalEntries, idx.Count())
 	}
 }
+
+func TestUpdateEntry(t *testing.T) {
+	name := "updateEntryTest"
+	rootPath := "/content/"
+	delete(indices, name) // ensure a clean slate before we start
+
+	idx := NewIndex(name, rootPath)
+
+	t.Run("empty ID returns error", func(t *testing.T) {
+		err := idx.UpdateEntry(IndexEntry{
+			Id:    "", // intentionally empty
+			Title: "No ID Entry",
+			Path:  "no-id.html",
+		})
+		if err == nil {
+			t.Errorf("expected error when updating entry with empty ID, got nil")
+		}
+	})
+
+	t.Run("non-existent ID returns error", func(t *testing.T) {
+		err := idx.UpdateEntry(IndexEntry{
+			Id:    "doesNotExist",
+			Title: "Non-existent Entry",
+			Path:  "not-found.html",
+		})
+		if err == nil {
+			t.Errorf("expected error when updating non-existent entry, got nil")
+		}
+	})
+
+	t.Run("valid ID updates successfully", func(t *testing.T) {
+		// Add an entry first
+		entry := IndexEntry{
+			Id:    "validID",
+			Title: "Original Title",
+			Path:  "original.html",
+		}
+		idx.AddEntry(entry)
+
+		// Update it
+		updated := IndexEntry{
+			Id:    "validID",
+			Title: "Updated Title",
+			Path:  "updated.html",
+		}
+		err := idx.UpdateEntry(updated)
+		if err != nil {
+			t.Fatalf("unexpected error updating entry: %v", err)
+		}
+
+		// Make sure the new data is in place
+		got := idx.GetEntry("validID")
+		if got == nil {
+			t.Fatalf("expected to retrieve updated entry with ID validID, got nil")
+		}
+		if got.Title != "Updated Title" {
+			t.Errorf("expected updated title 'Updated Title', got '%s'", got.Title)
+		}
+		// Check that the Path was updated and prefixed with rootPath
+		expectedPath := "/content/updated.html"
+		if got.Path != expectedPath {
+			t.Errorf("expected path '%s', got '%s'", expectedPath, got.Path)
+		}
+	})
+}
