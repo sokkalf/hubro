@@ -14,7 +14,6 @@ type Route struct {
 
 type PathRoutes struct {
     Path     string  `json:"path"`
-    Fallback string  `json:"fallback"`
     Routes   []Route `json:"routes"`
 }
 
