@@ -336,9 +336,10 @@ func NewHubro(config Config) *Hubro {
 		},
 		publicDir: config.PublicDir,
 	}
-	assetModificationTime, err := os.Stat("view/static/app.css")
+	cssFileName := "view/static/app.css"
+	assetModificationTime, err := os.Stat(cssFileName)
 	if err != nil {
-		slog.Error("Error getting file info, CSS file not found")
+		slog.Error("Error getting file info, CSS file not found", "filename", cssFileName)
 		panic(err)
 	}
 	go func() {
