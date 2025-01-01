@@ -235,3 +235,88 @@ func TestUpdateEntry(t *testing.T) {
 		}
 	})
 }
+
+// TestDeleteEntry verifies deleting an entry by ID.
+func TestDeleteEntry(t *testing.T) {
+    name := "deleteEntryTest"
+    rootPath := "/content/"
+    delete(indices, name) // clean slate
+
+    idx := NewIndex(name, rootPath)
+
+    t.Run("non-existent ID returns error", func(t *testing.T) {
+        err := idx.DeleteEntry("doesNotExist")
+        if err == nil {
+            t.Errorf("expected error for deleting non-existent ID, got nil")
+        }
+    })
+
+    t.Run("valid ID deletes successfully", func(t *testing.T) {
+        entry := IndexEntry{
+            Id:       "entry-123",
+            FileName: "my-file.md",
+            Title:    "Some Title",
+            Path:     "my-file.html",
+        }
+        idx.AddEntry(entry)
+
+        if idx.Count() != 1 {
+            t.Fatalf("expected 1 entry before delete, got %d", idx.Count())
+        }
+
+        err := idx.DeleteEntry("entry-123")
+        if err != nil {
+            t.Fatalf("unexpected error deleting entry: %v", err)
+        }
+
+        if idx.Count() != 0 {
+            t.Errorf("expected 0 entries after delete, got %d", idx.Count())
+        }
+        if idx.GetEntry("entry-123") != nil {
+            t.Errorf("expected nil when retrieving deleted entry, got non-nil")
+        }
+    })
+}
+
+// TestDeleteEntryByFileName verifies deleting an entry by FileName.
+func TestDeleteEntryByFileName(t *testing.T) {
+    name := "deleteByFileNameTest"
+    rootPath := "/content/"
+    delete(indices, name) // clean slate
+
+    idx := NewIndex(name, rootPath)
+
+    t.Run("non-existent FileName returns error", func(t *testing.T) {
+        err := idx.DeleteEntryByFileName("unknown.md")
+        if err == nil {
+            t.Errorf("expected error for deleting non-existent FileName, got nil")
+        }
+    })
+
+    t.Run("valid FileName deletes successfully", func(t *testing.T) {
+        entry := IndexEntry{
+            Id:       "entry-456",
+            FileName: "my-other-file.md",
+            Title:    "Another Title",
+            Path:     "another.html",
+        }
+        idx.AddEntry(entry)
+
+        if idx.Count() != 1 {
+            t.Fatalf("expected 1 entry before delete, got %d", idx.Count())
+        }
+
+        err := idx.DeleteEntryByFileName("my-other-file.md")
+        if err != nil {
+            t.Fatalf("unexpected error deleting by FileName: %v", err)
+        }
+
+        // Confirm it's truly gone
+        if idx.Count() != 0 {
+            t.Errorf("expected 0 entries after delete, got %d", idx.Count())
+        }
+        if idx.GetEntry("entry-456") != nil {
+            t.Errorf("expected nil when retrieving deleted entry by ID, got non-nil")
+        }
+    })
+}
