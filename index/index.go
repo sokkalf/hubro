@@ -128,8 +128,7 @@ func (i *Index) DeleteEntry(id string) error {
 	i.lookupMutex.Lock()
 	for j, entry := range i.Entries {
 		if entry.Id == id {
-			//i.Entries = append(i.Entries[:j], i.Entries[j+1:]...)
-			slog.Debug("Deleting entry", "id", id)
+			slog.Info("Deleting entry", "id", id)
 			i.Entries = slices.Delete(i.Entries, j, j+1)
 			delete(i.lookup, id)
 			break
