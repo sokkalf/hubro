@@ -140,9 +140,9 @@ func (i *Index) DeleteEntry(id string) error {
 
 func (i *Index) DeleteEntryByFileName(path string) error {
 	var entry *IndexEntry
-	for _, e := range i.Entries {
-		if e.FileName == path {
-			entry = &e
+	for idx := range i.Entries {
+		if i.Entries[idx].FileName == path {
+			entry = &i.Entries[idx]
 			break
 		}
 	}
@@ -155,10 +155,7 @@ func (i *Index) DeleteEntryByFileName(path string) error {
 func (i *Index) GetEntry(id string) *IndexEntry {
 	i.lookupMutex.RLock()
 	defer i.lookupMutex.RUnlock()
-	if e, ok := i.lookup[id]; ok {
-		return e
-	}
-	return nil
+	return i.lookup[id]
 }
 
 func (i *Index) Sort() {
