@@ -40,9 +40,6 @@ type Hubro struct {
 }
 
 type HubroModule func(string, *Hubro, *http.ServeMux, interface{})
-type ContextKey string
-
-const ContextPrefixKey ContextKey = "prefix"
 
 const (
 	rootLayout           = "app"
