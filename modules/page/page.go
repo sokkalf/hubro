@@ -227,14 +227,14 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 	opts.Index.Sort()
 	mux.HandleFunc("/", handler(h, mux, opts.Index))
 	slog.Info("Registered pages", "duration", time.Since(start))
-	slog.Debug("Scanning for new pages every 5 minutes")
+	slog.Debug("Scanning for new pages every 30 seconds", "index", opts.Index.GetName())
 
 	go func() {
 		for {
-			time.Sleep(5 * time.Minute)
+			time.Sleep(30 * time.Second)
 			n := scanMarkdownFiles(prefix, h, mux, opts)
 			if n > 0 {
-				slog.Info("Found new pages", "index", opts.Index.GetName(), "new", n)
+				slog.Info("Found new or updated pages", "index", opts.Index.GetName(), "new", n)
 				opts.Index.Sort()
 			}
 		}
