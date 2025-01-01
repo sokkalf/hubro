@@ -84,9 +84,14 @@ func (h *Hubro) GetHandler() http.Handler {
 }
 
 func (h *Hubro) createSubMux(prefix string, module HubroModule, options interface{}) *http.ServeMux {
-	mux := http.NewServeMux()
+	var mux *http.ServeMux
+	if prefix == "" || prefix == "/" {
+		mux = h.Mux
+	} else {
+		mux = http.NewServeMux()
+		h.Mux.Handle(prefix+"/", http.StripPrefix(prefix, mux))
+	}
 	module(prefix, h, mux, options)
-	h.Mux.Handle(prefix+"/", http.StripPrefix(prefix, mux))
 	return mux
 }
 
