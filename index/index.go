@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"log/slog"
+	"slices"
 	"sort"
 	"sync"
 	"time"
@@ -27,6 +28,7 @@ type IndexEntry struct {
 	Summary     *template.HTML         `json:"summary"`
 	Body        *template.HTML         `json:"body"`
 	Description string                 `json:"description"`
+	FileName    string                 `json:"fileName"`
 }
 
 const (
@@ -117,6 +119,38 @@ func (i *Index) UpdateEntry(e IndexEntry) error {
 	}
 	i.lookupMutex.Unlock()
 	return nil
+}
+
+func (i *Index) DeleteEntry(id string) error {
+	if i.GetEntry(id) == nil {
+		return fmt.Errorf("entry with ID %s does not exist", id)
+	}
+	i.lookupMutex.Lock()
+	for j, entry := range i.Entries {
+		if entry.Id == id {
+			//i.Entries = append(i.Entries[:j], i.Entries[j+1:]...)
+			slog.Debug("Deleting entry", "id", id)
+			i.Entries = slices.Delete(i.Entries, j, j+1)
+			delete(i.lookup, id)
+			break
+		}
+	}
+	i.lookupMutex.Unlock()
+	return nil
+}
+
+func (i *Index) DeleteEntryByFileName(path string) error {
+	var entry *IndexEntry
+	for _, e := range i.Entries {
+		if e.FileName == path {
+			entry = &e
+			break
+		}
+	}
+	if entry == nil {
+		return fmt.Errorf("entry with path %s does not exist", path)
+	}
+	return i.DeleteEntry(entry.Id)
 }
 
 func (i *Index) GetEntry(id string) *IndexEntry {

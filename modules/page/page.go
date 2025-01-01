@@ -144,6 +144,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 		Date:        date,
 		Summary:     summary,
 		Body:        body,
+		FileName:    path,
 	})
 	if err != nil {
 		slog.Warn("Error adding page to index", "page", name, "error", err, "index", opts.Index.GetName())
@@ -175,6 +176,7 @@ func scanMarkdownFiles(prefix string, h *server.Hubro, mux *http.ServeMux, opts 
 		goldmark.WithRendererOptions(html.WithUnsafe()),
 	)
 	filesScanned := 0
+	filesScannedList := make([]string, 0)
 	fs.WalkDir(opts.FilesDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".md") {
 			fi, _ := d.Info()
@@ -211,9 +213,35 @@ func scanMarkdownFiles(prefix string, h *server.Hubro, mux *http.ServeMux, opts 
 					indexedPagesMutex.Unlock()
 				}
 			}
+			filesScannedList = append(filesScannedList, path)
 		}
 		return nil
 	})
+	deletedFiles := make([]string, 0)
+	indexedPagesMutex.Lock()
+	for _, p := range indexedPages[opts.Index] {
+		var found bool = false
+		for _, f := range filesScannedList {
+			if p.path == f {
+				found = true
+			}
+		}
+		if !found {
+			deletedFiles = append(deletedFiles, p.path)
+		}
+	}
+	for _, f := range deletedFiles {
+		slog.Debug("Removing deleted page", "page", f, "index", opts.Index.GetName())
+		opts.Index.DeleteEntryByFileName(f)
+		for i, p := range indexedPages[opts.Index] {
+			if p.path == f {
+				indexedPages[opts.Index] = append(indexedPages[opts.Index][:i], indexedPages[opts.Index][i+1:]...)
+			}
+		}
+		filesScanned++
+	}
+	indexedPagesMutex.Unlock()
+
 	return filesScanned
 }
 
