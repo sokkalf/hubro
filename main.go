@@ -9,6 +9,7 @@ import (
 
 	pagesAPI "github.com/sokkalf/hubro/api/pages"
 	"github.com/sokkalf/hubro/config"
+	"github.com/sokkalf/hubro/helpers"
 	"github.com/sokkalf/hubro/index"
 	"github.com/sokkalf/hubro/logging"
 	"github.com/sokkalf/hubro/modules/feeds"
@@ -49,6 +50,8 @@ func main() {
 	pageIndex.SetSortMode(index.SortBySortOrder)
 	blogIndex := index.NewIndex("blog", config.Config.RootPath+"blog")
 	blogIndex.SetSortMode(index.SortByDate)
+	helpers.TagCloudInit(pageIndex)
+	helpers.TagCloudInit(blogIndex)
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 	go func () {

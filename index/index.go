@@ -36,12 +36,13 @@ const (
 
 type Index struct {
 	Entries     []IndexEntry `json:"entries"`
+	ResetChan   chan bool
 	rootPath    string
 	name        string
 	lookup      map[string]*IndexEntry
 	lookupMutex sync.RWMutex
 	sortMutex   sync.Mutex
-	sortMode	int
+	sortMode    int
 }
 
 func NewIndex(name string, rootPath string) *Index {
@@ -54,7 +55,11 @@ func NewIndex(name string, rootPath string) *Index {
 		return i
 	}
 
-	entry := &Index{name: name, rootPath: rootPath, lookup: make(map[string]*IndexEntry), sortMode: SortBySortOrder}
+	entry := &Index{name: name,
+		rootPath:  rootPath,
+		lookup:    make(map[string]*IndexEntry),
+		sortMode:  SortBySortOrder,
+		ResetChan: make(chan bool)}
 	indices[name] = entry
 	return entry
 }
@@ -142,6 +147,9 @@ func (i *Index) SortBySortOrder() {
 	sort.Slice(i.Entries, func(j, k int) bool {
 		return i.Entries[j].SortOrder < i.Entries[k].SortOrder
 	})
+	go func() {
+		i.ResetChan <- true
+	}()
 	i.sortMutex.Unlock()
 }
 
@@ -153,6 +161,9 @@ func (i *Index) SortByDate() {
 	sort.Slice(i.Entries, func(j, k int) bool {
 		return i.Entries[k].Date.Before(i.Entries[j].Date)
 	})
+	go func() {
+		i.ResetChan <- true
+	}()
 	i.sortMutex.Unlock()
 }
 
