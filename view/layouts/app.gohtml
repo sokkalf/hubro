@@ -9,8 +9,8 @@
   <script src="{{ vendor "highlight.js" }}"></script>
   <script defer src="{{ vendor "alpine.js" }}"></script>
   {{ if getConfig.FeedsEnabled }}
-  <link rel="alternate" type="application/rss+xml" title="{{ appTitle }}" href="/feeds/rss" />
-  <link rel="alternate" type="application/atom+xml" title="{{ appTitle }}" href="/feeds/atom" />
+  <link rel="alternate" type="application/rss+xml" title="{{ appTitle }}" href="{{ rootPath }}/feeds/rss" />
+  <link rel="alternate" type="application/atom+xml" title="{{ appTitle }}" href="{{ rootPath }}/feeds/atom" />
   {{ end }}
   <link href="{{ appCSS }}" rel="stylesheet">
 </head>
