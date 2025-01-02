@@ -37,14 +37,15 @@ const (
 )
 
 type Index struct {
-	Entries     []IndexEntry `json:"entries"`
-	ResetChan   chan bool
-	rootPath    string
-	name        string
-	lookup      map[string]*IndexEntry
-	lookupMutex sync.RWMutex
-	sortMutex   sync.Mutex
-	sortMode    int
+	Entries       []IndexEntry `json:"entries"`
+	ResetChan     chan bool
+	FeedResetChan chan bool
+	rootPath      string
+	name          string
+	lookup        map[string]*IndexEntry
+	lookupMutex   sync.RWMutex
+	sortMutex     sync.Mutex
+	sortMode      int
 }
 
 func NewIndex(name string, rootPath string) *Index {
@@ -58,10 +59,12 @@ func NewIndex(name string, rootPath string) *Index {
 	}
 
 	entry := &Index{name: name,
-		rootPath:  rootPath,
-		lookup:    make(map[string]*IndexEntry),
-		sortMode:  SortBySortOrder,
-		ResetChan: make(chan bool)}
+		rootPath:      rootPath,
+		lookup:        make(map[string]*IndexEntry),
+		sortMode:      SortBySortOrder,
+		ResetChan:     make(chan bool),
+		FeedResetChan: make(chan bool),
+	}
 	indices[name] = entry
 	return entry
 }

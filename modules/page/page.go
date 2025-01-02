@@ -17,6 +17,7 @@ import (
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
 
+	"github.com/sokkalf/hubro/config"
 	"github.com/sokkalf/hubro/index"
 	"github.com/sokkalf/hubro/server"
 	"github.com/sokkalf/hubro/utils"
@@ -265,6 +266,9 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 				slog.Info("Found new or updated pages", "index", opts.Index.GetName(), "new", n)
 				opts.Index.Sort()
 				opts.Index.ResetChan <- true
+				if config.Config.FeedsEnabled {
+					opts.Index.FeedResetChan <- true
+				}
 			}
 		}
 	}()

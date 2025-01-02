@@ -4,13 +4,39 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	gorillafeeds "github.com/gorilla/feeds"
 	"github.com/sokkalf/hubro/config"
-	"github.com/sokkalf/hubro/server"
 	"github.com/sokkalf/hubro/index"
+	"github.com/sokkalf/hubro/server"
 )
+
+type Feeds struct {
+	feedCache map[*index.Index]*gorillafeeds.Feed
+	feedCacheMutex sync.RWMutex
+}
+
+func InitFeeds(i *index.Index) *Feeds {
+	f := &Feeds{
+		feedCache: make(map[*index.Index]*gorillafeeds.Feed),
+	}
+	f.feedCache[i] = getFeedFromIndex(i)
+
+	go func() {
+		for {
+			reset := <-i.FeedResetChan
+			if reset {
+				slog.Debug("Resetting feed cache")
+				f.feedCacheMutex.Lock()
+				f.feedCache[i] = getFeedFromIndex(i)
+				f.feedCacheMutex.Unlock()
+			}
+		}
+	}()
+	return f
+}
 
 func getFeedFromIndex(index *index.Index) *gorillafeeds.Feed {
 	config := config.Config
@@ -53,15 +79,23 @@ func getFeedFromIndex(index *index.Index) *gorillafeeds.Feed {
 func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
 	start := time.Now()
 	index := options.(*index.Index)
-	feed := getFeedFromIndex(index)
+	feeds := InitFeeds(index)
+	if feeds == nil {
+		slog.Error("Failed to initialize feeds")
+		return
+	}
 
 	mux.HandleFunc("/rss", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/rss+xml")
-		feed.WriteRss(w)
+		feeds.feedCacheMutex.RLock()
+		feeds.feedCache[index].WriteRss(w)
+		feeds.feedCacheMutex.RUnlock()
 	})
 	mux.HandleFunc("/atom", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/atom+xml")
-		feed.WriteAtom(w)
+		feeds.feedCacheMutex.RLock()
+		feeds.feedCache[index].WriteAtom(w)
+		feeds.feedCacheMutex.RUnlock()
 	})
 	slog.Info("Registered feeds", "atomUrl", prefix+"/atom", "rssUrl", prefix+"/rss", "duration", time.Since(start))
 }
