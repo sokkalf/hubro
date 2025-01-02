@@ -208,10 +208,21 @@ func scanMarkdownFiles(prefix string, h *server.Hubro, mux *http.ServeMux, opts 
 				if err != nil {
 					slog.Error("Error parsing page", "page", path, "error", err)
 				} else {
-					indexedPagesMutex.Lock()
-					indexedPages[opts.Index] = append(indexedPages[opts.Index], idxVal)
-					filesScanned++
-					indexedPagesMutex.Unlock()
+					if !isUpdate {
+						indexedPagesMutex.Lock()
+						indexedPages[opts.Index] = append(indexedPages[opts.Index], idxVal)
+						filesScanned++
+						indexedPagesMutex.Unlock()
+					} else {
+						indexedPagesMutex.Lock()
+						for i, p := range indexedPages[opts.Index] {
+							if p.path == path {
+								indexedPages[opts.Index][i] = idxVal
+							}
+						}
+						filesScanned++
+						indexedPagesMutex.Unlock()
+					}
 				}
 			}
 			filesScannedList = append(filesScannedList, path)
