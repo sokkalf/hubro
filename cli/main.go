@@ -34,7 +34,7 @@ func generateMarkdownFile(fileName string) error {
 	for i := 0; i < numTags; i++ {
 		tags[i] = Tags[rand.Intn(len(Tags))]
 	}
-	slices.Compact(tags)
+	tags = slices.Compact(tags)
 
 	tagsString := strings.Join(tags, ",")
 
