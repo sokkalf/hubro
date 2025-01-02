@@ -16,6 +16,7 @@ var indices Indices
 
 type IndexEntry struct {
 	Id          string                 `json:"id"`
+	Slug        string                 `json:"slug"`
 	Title       string                 `json:"title"`
 	Author      string                 `json:"author"`
 	Path        string                 `json:"path"`
@@ -43,6 +44,7 @@ type Index struct {
 	rootPath      string
 	name          string
 	lookup        map[string]*IndexEntry
+	slugLookup    map[string]*IndexEntry
 	lookupMutex   sync.RWMutex
 	sortMutex     sync.Mutex
 	sortMode      int
@@ -61,6 +63,7 @@ func NewIndex(name string, rootPath string) *Index {
 	entry := &Index{name: name,
 		rootPath:      rootPath,
 		lookup:        make(map[string]*IndexEntry),
+		slugLookup:    make(map[string]*IndexEntry),
 		sortMode:      SortBySortOrder,
 		ResetChan:     make(chan bool),
 		FeedResetChan: make(chan bool),
@@ -100,6 +103,7 @@ func (i *Index) AddEntry(e IndexEntry) error {
 	i.lookupMutex.Lock()
 	i.Entries = append(i.Entries, e)
 	i.lookup[e.Id] = &e
+	i.slugLookup[e.Slug] = &e
 	i.lookupMutex.Unlock()
 	return nil
 }
@@ -117,6 +121,7 @@ func (i *Index) UpdateEntry(e IndexEntry) error {
 		if entry.Id == e.Id {
 			i.Entries[j] = e
 			i.lookup[e.Id] = &e
+			i.slugLookup[e.Slug] = &e
 			break
 		}
 	}
@@ -134,6 +139,7 @@ func (i *Index) DeleteEntry(id string) error {
 			slog.Info("Deleting entry", "id", id)
 			i.Entries = slices.Delete(i.Entries, j, j+1)
 			delete(i.lookup, id)
+			delete(i.slugLookup, entry.Slug)
 			break
 		}
 	}
@@ -141,24 +147,16 @@ func (i *Index) DeleteEntry(id string) error {
 	return nil
 }
 
-func (i *Index) DeleteEntryByFileName(path string) error {
-	var entry *IndexEntry
-	for idx := range i.Entries {
-		if i.Entries[idx].FileName == path {
-			entry = &i.Entries[idx]
-			break
-		}
-	}
-	if entry == nil {
-		return fmt.Errorf("entry with path %s does not exist", path)
-	}
-	return i.DeleteEntry(entry.Id)
-}
-
 func (i *Index) GetEntry(id string) *IndexEntry {
 	i.lookupMutex.RLock()
 	defer i.lookupMutex.RUnlock()
 	return i.lookup[id]
+}
+
+func (i *Index) GetEntryBySlug(slug string) *IndexEntry {
+	i.lookupMutex.RLock()
+	defer i.lookupMutex.RUnlock()
+	return i.slugLookup[slug]
 }
 
 func (i *Index) Sort() {

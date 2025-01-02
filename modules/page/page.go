@@ -132,7 +132,8 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 	slug := slugify(title)
 	handlerPath := "/" + slugify(title)
 	err = indexFunc(index.IndexEntry{
-		Id:          slug,
+		Id:          path,
+		Slug:        slug,
 		Title:       title,
 		Description: description,
 		Author:      author,
@@ -158,7 +159,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 func handler(h *server.Hubro, mux *http.ServeMux, index *index.Index) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slug := strings.TrimPrefix(r.URL.Path, "/")
-		entry := index.GetEntry(slug)
+		entry := index.GetEntryBySlug(slug)
 		if entry != nil {
 			h.Render(w, r, "page", entry)
 			return
@@ -244,7 +245,7 @@ func scanMarkdownFiles(prefix string, h *server.Hubro, mux *http.ServeMux, opts 
 	}
 	for _, f := range deletedFiles {
 		slog.Debug("Removing deleted page", "page", f, "index", opts.Index.GetName())
-		opts.Index.DeleteEntryByFileName(f)
+		opts.Index.DeleteEntry(f)
 		for i, p := range indexedPages[opts.Index] {
 			if p.path == f {
 				indexedPages[opts.Index] = append(indexedPages[opts.Index][:i], indexedPages[opts.Index][i+1:]...)
