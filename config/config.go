@@ -41,7 +41,7 @@ func Init() {
 		LegacyRoutesFile:    "./legacyRoutes.json",
 		BlogDir:             "./blog",
 		PagesDir:            "./pages",
-		PostsPerPage:        5,
+		PostsPerPage:        10,
 		Version:             "0.0.1-dev",
 		Environment:         "development",
 		GelfEndpoint:        nil,
