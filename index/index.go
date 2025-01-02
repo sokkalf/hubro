@@ -32,23 +32,27 @@ type IndexEntry struct {
 	FileName    string                 `json:"fileName"`
 }
 
+type IndexCondition struct {
+	Cond *sync.Cond
+}
+
+type Index struct {
+	Entries        []IndexEntry `json:"entries"`
+	rootPath       string
+	name           string
+	lookup         map[string]*IndexEntry
+	slugLookup     map[string]*IndexEntry
+	lookupMutex    sync.RWMutex
+	sortMutex      sync.Mutex
+	sortMode       int
+	ResetCondition *IndexCondition
+	ResetMutex     sync.Mutex
+}
+
 const (
 	SortBySortOrder = iota
 	SortByDate
 )
-
-type Index struct {
-	Entries       []IndexEntry `json:"entries"`
-	ResetChan     chan bool
-	FeedResetChan chan bool
-	rootPath      string
-	name          string
-	lookup        map[string]*IndexEntry
-	slugLookup    map[string]*IndexEntry
-	lookupMutex   sync.RWMutex
-	sortMutex     sync.Mutex
-	sortMode      int
-}
 
 func NewIndex(name string, rootPath string) *Index {
 	if indices == nil {
@@ -60,14 +64,17 @@ func NewIndex(name string, rootPath string) *Index {
 		return i
 	}
 
+
 	entry := &Index{name: name,
 		rootPath:      rootPath,
 		lookup:        make(map[string]*IndexEntry),
 		slugLookup:    make(map[string]*IndexEntry),
 		sortMode:      SortBySortOrder,
-		ResetChan:     make(chan bool),
-		FeedResetChan: make(chan bool),
 	}
+
+	resetCondition := IndexCondition{}
+	resetCondition.Cond = sync.NewCond(&entry.ResetMutex)
+	entry.ResetCondition = &resetCondition
 	indices[name] = entry
 	return entry
 }

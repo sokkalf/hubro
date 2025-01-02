@@ -17,7 +17,6 @@ import (
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
 
-	"github.com/sokkalf/hubro/config"
 	"github.com/sokkalf/hubro/index"
 	"github.com/sokkalf/hubro/server"
 	"github.com/sokkalf/hubro/utils"
@@ -264,6 +263,7 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 	if !ok {
 		slog.Error("Invalid options for page module")
 	}
+	resetCondition := opts.Index.ResetCondition.Cond
 	scanMarkdownFiles(prefix, h, mux, opts)
 	opts.Index.Sort()
 	mux.HandleFunc("/", handler(h, mux, opts.Index))
@@ -277,10 +277,9 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 			if n > 0 {
 				slog.Info("Found new or updated pages", "index", opts.Index.GetName(), "new", n)
 				opts.Index.Sort()
-				opts.Index.ResetChan <- true
-				if config.Config.FeedsEnabled {
-					opts.Index.FeedResetChan <- true
-				}
+				resetCondition.L.Lock()
+				resetCondition.Broadcast()
+				resetCondition.L.Unlock()
 			}
 		}
 	}()

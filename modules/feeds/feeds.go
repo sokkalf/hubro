@@ -14,7 +14,7 @@ import (
 )
 
 type Feeds struct {
-	feedCache map[*index.Index]*gorillafeeds.Feed
+	feedCache      map[*index.Index]*gorillafeeds.Feed
 	feedCacheMutex sync.RWMutex
 }
 
@@ -26,13 +26,13 @@ func InitFeeds(i *index.Index) *Feeds {
 
 	go func() {
 		for {
-			reset := <-i.FeedResetChan
-			if reset {
-				slog.Debug("Resetting feed cache")
-				f.feedCacheMutex.Lock()
-				f.feedCache[i] = getFeedFromIndex(i)
-				f.feedCacheMutex.Unlock()
-			}
+			i.ResetCondition.Cond.L.Lock()
+			i.ResetCondition.Cond.Wait()
+			slog.Debug("Resetting feed cache")
+			f.feedCacheMutex.Lock()
+			f.feedCache[i] = getFeedFromIndex(i)
+			f.feedCacheMutex.Unlock()
+			i.ResetCondition.Cond.L.Unlock()
 		}
 	}()
 	return f
