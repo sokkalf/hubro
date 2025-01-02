@@ -1,5 +1,6 @@
 {{ $count := 0 }}
-{{ range (listPages "blog" .FilterByTag) | paginate .Page }}
+{{ $pages := listPages "blog" .FilterByTag }}
+{{ range $pages | paginate .Page }}
 	{{ if not .Visible }}
 		{{ continue }}
 	{{ end }}
@@ -33,5 +34,5 @@
 {{ if eq $count 0 }}
 	<p>No posts found</p>
 {{ else }}
-	{{ paginator .Page (listPages "blog" .FilterByTag) }}
+	{{ paginator .Page $pages }}
 {{ end }}
