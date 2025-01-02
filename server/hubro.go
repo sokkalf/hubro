@@ -33,7 +33,6 @@ type Middleware func(*Hubro) func(http.Handler) http.Handler
 type Hubro struct {
 	Mux         *http.ServeMux
 	Server      *http.Server
-	Layouts     *template.Template
 	Templates   *template.Template
 	config      hc.HubroConfig
 	middlewares []Middleware
@@ -156,9 +155,8 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 			return entries[start:end]
 		},
 		"paginator": func(page int, entries []index.IndexEntry) template.HTML {
-			totalPages := (len(entries) + hc.Config.PostsPerPage - 1) / hc.Config.PostsPerPage
-			slog.Debug("Total pages", "totalPages", totalPages)
-			return helpers.Paginator(page, totalPages, entries)
+			slog.Warn("paginator called unexpectedly")
+			return template.HTML("")
 		},
 		"getConfig": func() hc.HubroConfig {
 			return h.config
@@ -172,7 +170,7 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 		},
 	}
 
-	h.Layouts = template.New("root_layout")
+	h.Templates = template.New("root")
 	fs.WalkDir(layoutDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".gohtml") {
 			go func() {
@@ -185,15 +183,14 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 					panic(err)
 				}
 				addTemplateMutex.Lock()
-				h.Layouts = template.Must(h.Layouts.New(name).Funcs(defaultFuncMap).Parse(string(content)))
-				slog.Debug("Parsed layout", "layout", h.Layouts.Name(), "duration", time.Since(start))
+				h.Templates = template.Must(h.Templates.New(name).Funcs(defaultFuncMap).Parse(string(content)))
+				slog.Debug("Parsed layout", "layout", h.Templates.Name(), "duration", time.Since(start))
 				addTemplateMutex.Unlock()
 			}()
 		}
 		return nil
 	})
 
-	h.Templates = template.New("root")
 	fs.WalkDir(templateDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".gohtml") {
 			go func() {
@@ -318,24 +315,29 @@ func (h *Hubro) RenderWithLayout(w http.ResponseWriter, r *http.Request, layoutN
 	if data == nil {
 		data = map[string]interface{}{}
 	}
+	clone, err := h.Templates.Clone()
+	if err != nil {
+		slog.Error("can't clone templates", "error", err)
+		http.Error(w, "Failed to render layout", http.StatusInternalServerError)
+		return
+	}
+
 	funcs := template.FuncMap{
 		"yield": func() (template.HTML, error) {
 			buf := bytes.NewBuffer(nil)
-			err := h.Templates.ExecuteTemplate(buf, templateName, data)
+			err := clone.ExecuteTemplate(buf, templateName, data)
 			return template.HTML(buf.String()), err
 		},
 		"boosted": func() bool {
 			return r.Header.Get("HX-Boosted") == "true"
 		},
+		"paginator": func(page int, entries []index.IndexEntry) template.HTML {
+			totalPages := (len(entries) + hc.Config.PostsPerPage - 1) / hc.Config.PostsPerPage
+			return helpers.Paginator(r.URL, page, totalPages, entries)
+		},
 	}
-	layout := h.Layouts.Lookup(layoutName)
-	if layout == nil {
-		slog.Warn("Layout not found, falling back to default layout", "layout", layoutName)
-		layout = h.Layouts.Lookup(rootLayout)
-	}
-	layoutClone, _ := layout.Clone()
-	layoutClone.Funcs(funcs)
-	err := layoutClone.Execute(w, data)
+	clone.Funcs(funcs)
+	err = clone.ExecuteTemplate(w, layoutName, data)
 	if err != nil {
 		slog.Error("can't render layout", "layout", layoutName, "error", err)
 		http.Error(w, "Failed to render layout", http.StatusInternalServerError)
@@ -346,7 +348,13 @@ func (h *Hubro) RenderWithoutLayout(w http.ResponseWriter, r *http.Request, temp
 	if data == nil {
 		data = map[string]interface{}{}
 	}
-	err := h.Templates.ExecuteTemplate(w, templateName, data)
+	clone, err := h.Templates.Clone()
+	if err != nil {
+		slog.Error("can't clone templates", "error", err)
+		http.Error(w, "Failed to render template", http.StatusInternalServerError)
+		return
+	}
+	err = clone.ExecuteTemplate(w, templateName, data)
 	if err != nil {
 		slog.Error("can't render template", "template", templateName, "error", err)
 		http.Error(w, "Failed to render template", http.StatusInternalServerError)

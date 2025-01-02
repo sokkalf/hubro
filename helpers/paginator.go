@@ -1,39 +1,61 @@
 package helpers
 
 import (
-	"html/template"
-	"strconv"
+    "html/template"
+    "net/url"
+    "strconv"
 
-	"github.com/sokkalf/hubro/index"
+    "github.com/sokkalf/hubro/index"
 )
 
-func Paginator(page int, totalPages int, entries []index.IndexEntry) template.HTML {
-	var prevPage, nextPage int
-	if page > 1 {
-		prevPage = page - 1
-	}
-	if page < totalPages {
-		nextPage = page + 1
-	}
+// Paginator preserves existing query parameters by parsing them
+func Paginator(currentURL *url.URL, page, totalPages int, entries []index.IndexEntry) template.HTML {
+    paginator := `<nav class="pagination" role="navigation" aria-label="pagination">`
+    if totalPages > 1 {
+        paginator += `<ul class="pagination">`
 
-	paginator := `<nav class="pagination" role="navigation" aria-label="pagination">`
-	if totalPages > 1 {
-		paginator += `<ul class="pagination">`
-		if prevPage > 0 {
-			paginator += `<li><a hx-boost="true" href="?p=` + strconv.Itoa(prevPage) + `" class="pagination">Previous</a></li>`
-		}
-		for i := 1; i <= totalPages; i++ {
-			if i == page {
-				paginator += `<li><a hx-boost="true" href="?p=` + strconv.Itoa(i) + `" class="pagination is-current">` + strconv.Itoa(i) + `</a></li>`
-			} else {
-				paginator += `<li><a hx-boost="true" href="?p=` + strconv.Itoa(i) + `" class="pagination">` + strconv.Itoa(i) + `</a></li>`
-			}
-		}
-		if nextPage > 0 {
-			paginator += `<li><a hx-boost="true" href="?p=` + strconv.Itoa(nextPage) + `" class="pagination">Next</a></li>`
-		}
-		paginator += "</ul>"
-	}
-	paginator += "</nav>"
-	return template.HTML(paginator)
+        // Determine previous page link
+        if page > 1 {
+            prevPage := page - 1
+            paginator += buildPageLink(currentURL, prevPage, "Previous")
+        }
+
+        // Links for each page
+        for i := 1; i <= totalPages; i++ {
+            if i == page {
+                // Mark current page
+                paginator += buildPageLink(currentURL, i, strconv.Itoa(i), true)
+            } else {
+                paginator += buildPageLink(currentURL, i, strconv.Itoa(i))
+            }
+        }
+
+        // Determine next page link
+        if page < totalPages {
+            nextPage := page + 1
+            paginator += buildPageLink(currentURL, nextPage, "Next")
+        }
+
+        paginator += "</ul>"
+    }
+    paginator += "</nav>"
+
+    return template.HTML(paginator)
+}
+
+// buildPageLink sets the `p` query parameter for a page, preserves others, and returns the link HTML
+func buildPageLink(u *url.URL, page int, text string, isCurrent ...bool) string {
+    // Copy the URL so we don’t modify the original pointer
+    newURL := *u
+
+    q := newURL.Query()
+    q.Set("p", strconv.Itoa(page))   // set/update the "p" param
+    newURL.RawQuery = q.Encode()
+
+    cssClasses := "pagination"
+    if len(isCurrent) > 0 && isCurrent[0] {
+        cssClasses += " is-current"
+    }
+
+    return `<li><a hx-boost="true" href="` + newURL.String() + `" class="` + cssClasses + `">` + text + `</a></li>`
 }
