@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -142,6 +143,23 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 				}
 			}
 		},
+		"paginate": func(page int, entries []index.IndexEntry) []index.IndexEntry {
+			perPage := hc.Config.PostsPerPage
+			start := (page - 1) * perPage
+			end := start + perPage
+			if start > len(entries) {
+				return []index.IndexEntry{}
+			}
+			if end > len(entries) {
+				end = len(entries)
+			}
+			return entries[start:end]
+		},
+		"paginator": func(page int, entries []index.IndexEntry) template.HTML {
+			totalPages := (len(entries) + hc.Config.PostsPerPage - 1) / hc.Config.PostsPerPage
+			slog.Debug("Total pages", "totalPages", totalPages)
+			return helpers.Paginator(page, totalPages, entries)
+		},
 		"getConfig": func() hc.HubroConfig {
 			return h.config
 		},
@@ -222,18 +240,30 @@ func (h *Hubro) initVendorDir(vendorDir fs.FS) {
 func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
 		tag := ""
+		page := 1
 		query := r.URL.Query()
 		if query.Get("tag") != "" {
 			tag = query.Get("tag")
+		}
+		if query.Get("p") != "" {
+			var err error
+			page, err = strconv.Atoi(query.Get("p"))
+			if err != nil {
+				page = 1
+			}
+		} else {
+			page = 1
 		}
 
 		// Render the "index.gohtml" template
 		h.Render(w, r, "blogindex", struct {
 			FilterByTag string
-			Title string
+			Title       string
+			Page        int
 		}{
 			FilterByTag: tag,
-			Title: h.config.Description,
+			Title:       h.config.Description,
+			Page:        page,
 		})
 	} else {
 		fs := http.FS(h.publicDir)

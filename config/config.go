@@ -20,9 +20,10 @@ type HubroConfig struct {
 	LegacyRoutesFile    string
 	BlogDir             string
 	PagesDir            string
+	PostsPerPage        int
 	Version             string
 	Environment         string
-	GelfEndpoint		*string
+	GelfEndpoint        *string
 }
 
 var Config *HubroConfig
@@ -40,6 +41,7 @@ func Init() {
 		LegacyRoutesFile:    "./legacyRoutes.json",
 		BlogDir:             "./blog",
 		PagesDir:            "./pages",
+		PostsPerPage:        10,
 		Version:             "0.0.1-dev",
 		Environment:         "development",
 		GelfEndpoint:        nil,

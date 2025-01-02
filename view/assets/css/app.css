@@ -86,3 +86,21 @@ footer {
 #elixir-image {
 	filter: grayscale(100%) invert(100%);
 }
+
+.pagination {
+	display: flex;
+	justify-content: center;
+}
+
+.pagination ul li {
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.pagination ul li a a:hover a:visted {
+	color: #000;
+}
+
+.pagination .is-current {
+	font-weight: bold;
+}
