@@ -4,7 +4,7 @@
 	{{ end }}
 	<div class="max-w-full mx-auto bg-white rounded-lg shadow p-6">
 		<h1 class="text-2xl font-semibold">
-			<a hx-boost="true" href="{{ rootPath }}{{ .Path }}">{{ .Title }}</a>
+			<a data-hx-boost="true" href="{{ rootPath }}{{ .Path }}">{{ .Title }}</a>
 		</h1>
 		<div class="tags py-2">
 			{{ range .Tags }}

@@ -6,12 +6,12 @@
 	{{ end }}
 	<div class="max-w-full mx-auto bg-white rounded-lg shadow p-6">
 		<h1 class="text-2xl font-semibold">
-			<a hx-boost="true" href="{{ rootPath }}{{ .Path }}">{{ .Title }}</a>
+			<a data-hx-boost="true" href="{{ rootPath }}{{ .Path }}">{{ .Title }}</a>
 		</h1>
 		<div class="tags py-2">
 			{{ range .Tags }}
 			<span class="tag rounded-full mx-1 px-3 py-1 text-sm bg-indigo-300">
-				<a hx-boost="true" href="{{ rootPath }}?tag={{ . }}">{{ . }}</a>
+				<a data-hx-boost="true" href="{{ rootPath }}?tag={{ . }}">{{ . }}</a>
 			</span>
 			{{ end }}
 		</div>

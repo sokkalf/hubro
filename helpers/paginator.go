@@ -57,5 +57,5 @@ func buildPageLink(u *url.URL, page int, text string, isCurrent ...bool) string 
         cssClasses += " is-current"
     }
 
-    return `<li><a hx-boost="true" href="` + newURL.String() + `" class="` + cssClasses + `">` + text + `</a></li>`
+    return `<li><a data-hx-boost="true" href="` + newURL.String() + `" class="` + cssClasses + `">` + text + `</a></li>`
 }

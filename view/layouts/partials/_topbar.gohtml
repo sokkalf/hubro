@@ -1,10 +1,10 @@
 <div class="topnav bg-indigo-950">
-	<a hx-boost="true" href="/">{{ appTitle }}</a>
+	<a data-hx-boost="true" href="/">{{ appTitle }}</a>
 	{{ range listPages "pages" "" }}
 		{{ if not .Visible }}
 			{{ continue }}
 		{{ end }}
-		<a hx-boost="true" href="{{ rootPath }}{{ .Path }}">{{ .Title }}</a>
+		<a data-hx-boost="true" href="{{ rootPath }}{{ .Path }}">{{ .Title }}</a>
 	{{ end }}
 	<!-- Stuff on the right side -->
 	<div class="topnav-right h-6">
