@@ -10,7 +10,7 @@ import (
 
 // Paginator preserves existing query parameters by parsing them
 func Paginator(currentURL *url.URL, page, totalPages int, entries []index.IndexEntry) template.HTML {
-    paginator := `<nav class="pagination" "aria-label="pagination">`
+    paginator := `<nav class="pagination" aria-label="pagination">`
     if totalPages > 1 {
         paginator += `<ul class="pagination">`
 
