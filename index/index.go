@@ -27,6 +27,7 @@ type IndexEntry struct {
 	Metadata    map[string]interface{} `json:"metadata"`
 	Visible     bool                   `json:"visible"`
 	HideAuthor  bool                   `json:"hideAuthor"`
+	HideTitle   bool                   `json:"hideTitle"`
 	Tags        []string               `json:"tags"`
 	Summary     *template.HTML         `json:"summary"`
 	Body        *template.HTML         `json:"body"`
@@ -45,15 +46,15 @@ const (
 )
 
 type Index struct {
-	Entries        []IndexEntry `json:"entries"`
-	rootPath       string
-	name           string
-	lookup         map[string]*IndexEntry
-	slugLookup     map[string]*IndexEntry
-	lookupMutex    sync.RWMutex
-	sortMutex      sync.Mutex
-	sortMode       int
-	MsgBroker	   *broker.Broker[Message]
+	Entries     []IndexEntry `json:"entries"`
+	rootPath    string
+	name        string
+	lookup      map[string]*IndexEntry
+	slugLookup  map[string]*IndexEntry
+	lookupMutex sync.RWMutex
+	sortMutex   sync.Mutex
+	sortMode    int
+	MsgBroker   *broker.Broker[Message]
 }
 
 const (
@@ -71,12 +72,11 @@ func NewIndex(name string, rootPath string) *Index {
 		return i
 	}
 
-
 	entry := &Index{name: name,
-		rootPath:      rootPath,
-		lookup:        make(map[string]*IndexEntry),
-		slugLookup:    make(map[string]*IndexEntry),
-		sortMode:      SortBySortOrder,
+		rootPath:   rootPath,
+		lookup:     make(map[string]*IndexEntry),
+		slugLookup: make(map[string]*IndexEntry),
+		sortMode:   SortBySortOrder,
 	}
 
 	entry.MsgBroker = broker.NewBroker[Message]()

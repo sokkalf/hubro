@@ -44,6 +44,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 	var author string
 	var visible bool = true
 	var hideAuthor bool = false
+	var hideTitle bool = false
 	var sortOrder int
 	var tags []string
 	var summary *template.HTML
@@ -99,6 +100,10 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 		hideAuthor = h.(bool)
 		delete(metaData, "hideAuthor")
 	}
+	if h, ok := metaData["hideTitle"]; ok {
+		hideTitle = h.(bool)
+		delete(metaData, "hideTitle")
+	}
 	if t, ok := metaData["tags"]; ok {
 		tags = make([]string, 0)
 		for _, tag := range t.([]interface{}) {
@@ -141,6 +146,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 		Path:        handlerPath,
 		SortOrder:   sortOrder,
 		HideAuthor:  hideAuthor,
+		HideTitle:   hideTitle,
 		Tags:        tags,
 		Date:        date,
 		Summary:     summary,
