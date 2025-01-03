@@ -170,13 +170,13 @@ func handler(h *server.Hubro, mux *http.ServeMux, index *index.Index) http.Handl
 	}
 }
 
-func scanMarkdownFiles(prefix string, h *server.Hubro, mux *http.ServeMux, opts PageOptions) int {
+func scanMarkdownFiles(prefix string, h *server.Hubro, mux *http.ServeMux, opts PageOptions) (int, int, int, int) {
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM, meta.Meta),
 		goldmark.WithParserOptions(parser.WithAutoHeadingID()),
 		goldmark.WithRendererOptions(html.WithUnsafe()),
 	)
-	filesScanned := 0
+	filesScanned, numDeleted, numUpdated, numNew := 0, 0, 0, 0
 	filesScannedList := make([]string, 0)
 	fs.WalkDir(opts.FilesDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".md") {
@@ -212,6 +212,7 @@ func scanMarkdownFiles(prefix string, h *server.Hubro, mux *http.ServeMux, opts 
 						indexedPagesMutex.Lock()
 						indexedPages[opts.Index] = append(indexedPages[opts.Index], idxVal)
 						filesScanned++
+						numNew++
 						indexedPagesMutex.Unlock()
 					} else {
 						indexedPagesMutex.Lock()
@@ -221,6 +222,7 @@ func scanMarkdownFiles(prefix string, h *server.Hubro, mux *http.ServeMux, opts 
 							}
 						}
 						filesScanned++
+						numUpdated++
 						indexedPagesMutex.Unlock()
 					}
 				}
@@ -248,13 +250,14 @@ func scanMarkdownFiles(prefix string, h *server.Hubro, mux *http.ServeMux, opts 
 		for i, p := range indexedPages[opts.Index] {
 			if p.path == f {
 				indexedPages[opts.Index] = append(indexedPages[opts.Index][:i], indexedPages[opts.Index][i+1:]...)
+				numDeleted++
 			}
 		}
 		filesScanned++
 	}
 	indexedPagesMutex.Unlock()
 
-	return filesScanned
+	return filesScanned, numNew, numUpdated, numDeleted
 }
 
 func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
@@ -272,9 +275,9 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 	go func() {
 		for {
 			time.Sleep(30 * time.Second)
-			n := scanMarkdownFiles(prefix, h, mux, opts)
+			n, nNew, nUpdated, nDeleted := scanMarkdownFiles(prefix, h, mux, opts)
 			if n > 0 {
-				slog.Info("Found new or updated pages", "index", opts.Index.GetName(), "new", n)
+				slog.Info("Found new or updated pages", "index", opts.Index.GetName(), "new", nNew, "updated", nUpdated, "deleted", nDeleted)
 				opts.Index.Sort()
 				opts.Index.MsgBroker.Publish(index.Reset)
 			}
