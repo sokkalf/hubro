@@ -25,14 +25,17 @@ func InitFeeds(i *index.Index) *Feeds {
 	f.feedCache[i] = getFeedFromIndex(i)
 
 	go func() {
+		msgChan := i.MsgBroker.Subscribe()
 		for {
-			i.ResetCondition.Cond.L.Lock()
-			i.ResetCondition.Cond.Wait()
-			slog.Debug("Resetting feed cache")
-			f.feedCacheMutex.Lock()
-			f.feedCache[i] = getFeedFromIndex(i)
-			f.feedCacheMutex.Unlock()
-			i.ResetCondition.Cond.L.Unlock()
+			switch <-msgChan {
+			case index.Reset:
+				slog.Debug("Resetting feed cache")
+				f.feedCacheMutex.Lock()
+				f.feedCache[i] = getFeedFromIndex(i)
+				f.feedCacheMutex.Unlock()
+			default:
+				slog.Error("Unknown message received")
+			}
 		}
 	}()
 	return f

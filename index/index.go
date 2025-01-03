@@ -8,6 +8,8 @@ import (
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/sokkalf/hubro/utils/broker"
 )
 
 type Indices map[string]*Index
@@ -36,6 +38,12 @@ type IndexCondition struct {
 	Cond *sync.Cond
 }
 
+type Message int
+
+const (
+	Reset Message = iota
+)
+
 type Index struct {
 	Entries        []IndexEntry `json:"entries"`
 	rootPath       string
@@ -45,8 +53,7 @@ type Index struct {
 	lookupMutex    sync.RWMutex
 	sortMutex      sync.Mutex
 	sortMode       int
-	ResetCondition *IndexCondition
-	ResetMutex     sync.Mutex
+	MsgBroker	   *broker.Broker[Message]
 }
 
 const (
@@ -72,9 +79,9 @@ func NewIndex(name string, rootPath string) *Index {
 		sortMode:      SortBySortOrder,
 	}
 
-	resetCondition := IndexCondition{}
-	resetCondition.Cond = sync.NewCond(&entry.ResetMutex)
-	entry.ResetCondition = &resetCondition
+	entry.MsgBroker = broker.NewBroker[Message]()
+	go entry.MsgBroker.Start()
+
 	indices[name] = entry
 	return entry
 }

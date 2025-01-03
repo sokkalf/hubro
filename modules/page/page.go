@@ -263,7 +263,6 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 	if !ok {
 		slog.Error("Invalid options for page module")
 	}
-	resetCondition := opts.Index.ResetCondition.Cond
 	scanMarkdownFiles(prefix, h, mux, opts)
 	opts.Index.Sort()
 	mux.HandleFunc("/", handler(h, mux, opts.Index))
@@ -277,9 +276,7 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 			if n > 0 {
 				slog.Info("Found new or updated pages", "index", opts.Index.GetName(), "new", n)
 				opts.Index.Sort()
-				resetCondition.L.Lock()
-				resetCondition.Broadcast()
-				resetCondition.L.Unlock()
+				opts.Index.MsgBroker.Publish(index.Reset)
 			}
 		}
 	}()
