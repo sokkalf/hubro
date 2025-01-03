@@ -74,6 +74,10 @@ footer {
 	border-radius: 5px;
 }
 
+.markdown-body a {
+	text-decoration: underline;
+}
+
 .iconlist li {
 	float: left;
 	width: 28px;
