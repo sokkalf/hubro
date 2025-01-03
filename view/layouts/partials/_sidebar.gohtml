@@ -1,17 +1,17 @@
-<div class="sidebar bg-indigo-950 text-white px-2 text-center fixed bottom-0 md:pt-8 md:top-0 md:left-0 h-16 md:h-screen md:border-r-4 md:border-gray-600">
+<div class="fixed bottom-0 h-16 bg-indigo-950 px-2 text-center text-white sidebar md:pt-8 md:top-0 md:left-0 md:h-screen md:border-r-4 md:border-gray-600">
 	<div class="mx-auto lg:float-right lg:px-6">
-		<div class="flex logo items-center justify-center">
+		<div class="flex items-center justify-center logo">
 			<img src="{{ staticPath "images/ugle-z.svg" }}" alt="Logo" class="avatar">
 		</div>
 		<div class="text-center">
 			<h1 class="text-2xl font-bold">{{ getConfig.Title }}</h1>
 			<p class="text-sm">{{ getConfig.Description }}</p>
 		</div>
-		<div class="author py-4">
+		<div class="py-4 author">
 			<p class="text-lg">{{ getConfig.AuthorName }}</p>
 		</div>
-		<div class="icons py-4">
-			<ul class="iconlist py-4">
+		<div class="py-4 icons">
+			<ul class="py-4 iconlist">
 				<li class="icon">
 					<a href="https://www.kernel.org/" target="_blank">
 						<img src="{{ staticPath "images/tux_logo.png" }}" alt="Linux Logo">
@@ -44,7 +44,7 @@
 				</li>
 			</ul>
 		</div>
-		<div class="tag-cloud py-2">
+		<div class="py-2 tag-cloud">
 		{{ tagCloud "blog" }}
 		</div>
 	</div>

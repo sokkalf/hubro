@@ -1,9 +1,9 @@
-  <div class="max-w-md mx-auto bg-white rounded-lg shadow p-6">
+  <div class="mx-auto max-w-md rounded-lg bg-white p-6 shadow">
 	{{ template "title" }}
 
     <!-- HTMX Trigger Button -->
     <button
-      class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+      class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
       data-hx-get="/ping"
       data-hx-trigger="click"
       data-hx-target="#response"
