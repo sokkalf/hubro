@@ -17,7 +17,6 @@ import (
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
 
-	"github.com/sokkalf/hubro/cache"
 	"github.com/sokkalf/hubro/index"
 	"github.com/sokkalf/hubro/server"
 	"github.com/sokkalf/hubro/utils"
@@ -287,7 +286,6 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 				slog.Info("Found new or updated pages", "index", opts.Index.GetName(), "new", nNew, "updated", nUpdated, "deleted", nDeleted)
 				opts.Index.Sort()
 				opts.Index.MsgBroker.Publish(index.Reset)
-				cache.MsgBroker.Publish(index.Reset)
 			}
 		}
 	}()
