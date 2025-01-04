@@ -38,7 +38,11 @@ highlightNewCodeBlocks();
 boostLocalLinks();
 document.addEventListener('alpine:init', () => {
 	Alpine.directive('timeago', el => {
+		if (el.getAttribute("data-processed")) {
+			return;
+		}
 		el.setAttribute("title", el.textContent);
+		el.setAttribute("data-processed", "true");
 		el.textContent = timeAgo(el.textContent);
 	});
 });
