@@ -67,14 +67,18 @@ func LogMiddleware() server.Middleware {
 					return
 				}
 				userAgent := r.Header.Get("User-Agent")
+				hxBoosted := r.Header.Get("HX-Boosted")
+				if hxBoosted == "" {
+					hxBoosted = "false"
+				}
 				remoteAddr, proxied := getRemoteAddr(r)
 				query := r.URL.Query().Encode()
 				if query != "" {
 					slog.Info(fmt.Sprintf("%s %s?%s", r.Method, r.URL.Path, query),
-						"remoteaddr", remoteAddr, "proxied", proxied, "status", ew.StatusCode, "user-agent", userAgent, "duration", time.Since(start))
+						"remoteaddr", remoteAddr, "proxied", proxied, "status", ew.StatusCode, "user-agent", userAgent, "hx-boosted", hxBoosted, "duration", time.Since(start))
 				} else {
 					slog.Info(fmt.Sprintf("%s %s", r.Method, r.URL.Path),
-						"remoteaddr", remoteAddr, "proxied", proxied, "status", ew.StatusCode, "user-agent", userAgent, "duration", time.Since(start))
+						"remoteaddr", remoteAddr, "proxied", proxied, "status", ew.StatusCode, "user-agent", userAgent, "hx-boosted", hxBoosted, "duration", time.Since(start))
 				}
 			})
 		}
