@@ -35,10 +35,6 @@ type IndexEntry struct {
 	FileName    string                 `json:"fileName"`
 }
 
-type IndexCondition struct {
-	Cond *sync.Cond
-}
-
 type Message int
 
 const (
