@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/sokkalf/hubro/cache"
 	hc "github.com/sokkalf/hubro/config"
 	"github.com/sokkalf/hubro/helpers"
 	"github.com/sokkalf/hubro/index"
@@ -315,6 +316,16 @@ func (h *Hubro) RenderWithLayout(w http.ResponseWriter, r *http.Request, layoutN
 	if data == nil {
 		data = map[string]interface{}{}
 	}
+	cacheKey := fmt.Sprintf("%s-%s", layoutName, templateName)
+	if t := cache.Get(cacheKey); t != nil {
+		t.ExecuteTemplate(w, layoutName, data)
+		var err error
+		if err != nil {
+			slog.Error("can't render cached template", "template", cacheKey, "error", err)
+			http.Error(w, "Failed to render cached template", http.StatusInternalServerError)
+		}
+		return
+	}
 	clone, err := h.Templates.Clone()
 	if err != nil {
 		slog.Error("can't clone templates", "error", err)
@@ -337,6 +348,7 @@ func (h *Hubro) RenderWithLayout(w http.ResponseWriter, r *http.Request, layoutN
 		},
 	}
 	clone.Funcs(funcs)
+	cache.Put(cacheKey, clone)
 	err = clone.ExecuteTemplate(w, layoutName, data)
 	if err != nil {
 		slog.Error("can't render layout", "layout", layoutName, "error", err)

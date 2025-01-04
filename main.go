@@ -8,6 +8,7 @@ import (
 	"time"
 
 	pagesAPI "github.com/sokkalf/hubro/api/pages"
+	"github.com/sokkalf/hubro/cache"
 	"github.com/sokkalf/hubro/config"
 	"github.com/sokkalf/hubro/helpers"
 	"github.com/sokkalf/hubro/index"
@@ -28,6 +29,7 @@ func main() {
 	config.Config.Version = Version
 	logging.InitLogger()
 	slog.Info("Starting Hubro 🦉")
+	cache.InitTemplateCache()
 	vendorDir := os.DirFS("view/assets/vendor")
 	layoutDir := os.DirFS("view/layouts")
 	templateDir := os.DirFS("view/templates")
