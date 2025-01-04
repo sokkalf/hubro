@@ -235,51 +235,58 @@ func (h *Hubro) initVendorDir(vendorDir fs.FS) {
 }
 
 func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/" {
-		tag := ""
-		page := 1
-		query := r.URL.Query()
-		if query.Get("tag") != "" {
-			tag = query.Get("tag")
-		}
-		if query.Get("p") != "" {
-			var err error
-			page, err = strconv.Atoi(query.Get("p"))
-			if err != nil {
-				page = 1
-			}
-		} else {
-			page = 1
-		}
+	if r.URL.Path != "/" {
+		h.servePublicFile(w, r)
+		return
+	}
 
-		// Render the "index.gohtml" template
-		h.Render(w, r, "blogindex", struct {
-			FilterByTag string
-			Title       string
-			Page        int
-		}{
-			FilterByTag: tag,
-			Title:       h.config.Description,
-			Page:        page,
-		})
-	} else {
-		fs := http.FS(h.publicDir)
-		if !slices.Contains(publicFileWhiteList, strings.TrimPrefix(r.URL.Path, "/")) {
-			msg := "Page not found"
-			h.ErrorHandler(w, r, http.StatusNotFound, &msg)
-			return
-		}
-		file, err := fs.Open(r.URL.Path)
-		if err != nil {
-			msg := "Page not found"
-			h.ErrorHandler(w, r, http.StatusNotFound, &msg)
-			return
-		} else {
-			file.Close()
-			w.Header().Set("Cache-Control", "public, max-age=31536000")
-			http.FileServer(fs).ServeHTTP(w, r)
+	tag, page := parseQueryParams(r)
+
+	h.Render(w, r, "blogindex", struct {
+		FilterByTag string
+		Title       string
+		Page        int
+	}{
+		FilterByTag: tag,
+		Title:       h.config.Description,
+		Page:        page,
+	})
+}
+
+func parseQueryParams(r *http.Request) (string, int) {
+	query := r.URL.Query()
+
+	tag := query.Get("tag")
+	page := 1
+	if p := query.Get("p"); p != "" {
+		if parsedPage, err := strconv.Atoi(p); err == nil {
+			page = parsedPage
 		}
 	}
+	return tag, page
+}
+
+// servePublicFile serves a static file from h.publicDir if it is in the whitelist,
+// otherwise it returns a 404.
+func (h *Hubro) servePublicFile(w http.ResponseWriter, r *http.Request) {
+	trimmedPath := strings.TrimPrefix(r.URL.Path, "/")
+	if !slices.Contains(publicFileWhiteList, trimmedPath) {
+		msg := "Page not found"
+		h.ErrorHandler(w, r, http.StatusNotFound, &msg)
+		return
+	}
+
+	fs := http.FS(h.publicDir)
+	file, err := fs.Open(r.URL.Path)
+	if err != nil {
+		msg := "Page not found"
+		h.ErrorHandler(w, r, http.StatusNotFound, &msg)
+		return
+	}
+	file.Close()
+
+	w.Header().Set("Cache-Control", "public, max-age=31536000")
+	http.FileServer(fs).ServeHTTP(w, r)
 }
 
 func (h *Hubro) testHandler(w http.ResponseWriter, r *http.Request) {
