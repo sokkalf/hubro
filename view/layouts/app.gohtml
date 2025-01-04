@@ -17,11 +17,32 @@
 <body class="bg-gray-100">
 	{{ template "partials/_topbar" . }}
 	{{ template "partials/_sidebar" . }}
-	<main class="px-2 py-2 main-content md:ml-[250px]">
+	<main x-data="{}" class="px-2 py-2 main-content md:ml-[250px]">
 		{{yield}}
 	</main>
 	{{ template "partials/_footer" . }}
 	<script>
+		function timeAgo(input) {
+			console.log(input);
+			const date = (input instanceof Date) ? input : new Date(input);
+			const formatter = new Intl.RelativeTimeFormat('en');
+			const ranges = {
+				years: 3600 * 24 * 365,
+				months: 3600 * 24 * 30,
+				weeks: 3600 * 24 * 7,
+				days: 3600 * 24,
+				hours: 3600,
+				minutes: 60,
+				seconds: 1
+			};
+			const secondsElapsed = (date.getTime() - Date.now()) / 1000;
+			for (let key in ranges) {
+				if (ranges[key] < Math.abs(secondsElapsed)) {
+					const delta = secondsElapsed / ranges[key];
+					return formatter.format(Math.round(delta), key);
+				}
+			}
+		}
 		function linkIsExternal(link_element) {
  		   return (link_element.host !== window.location.host);
 		}
@@ -39,6 +60,12 @@
 		}
 		highlightNewCodeBlocks();
 		boostLocalLinks();
+		document.addEventListener('alpine:init', () => {
+			Alpine.directive('timeago', el => {
+				el.setAttribute("title", el.textContent);
+  				el.textContent = timeAgo(el.textContent);
+			});
+		});
 	</script>
 </body>
 </html>
