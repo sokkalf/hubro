@@ -1,11 +1,13 @@
 <div class="mx-auto max-w-full rounded-lg bg-white p-6 shadow">
 	{{ if not .HideTitle }}
-	<h1 class="text-2xl font-semibold">
+	<h1 class="text-3xl font-semibold">
 		{{.Title}}
 	</h1>
 	<div class="py-2 tags">
 		{{ range .Tags }}
-		<span class="rounded-full bg-indigo-300 px-3 py-1 text-sm tag">{{ . }}</span>
+			<span class="mx-1 rounded-full bg-indigo-300 px-3 py-1 text-sm tag">
+				<a data-hx-boost="true" href="{{ rootPath }}?tag={{ . }}">{{ . }}</a>
+			</span>
 		{{ end }}
 	</div>
 	{{ end }}
