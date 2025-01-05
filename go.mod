@@ -7,7 +7,7 @@ require (
 	github.com/gorilla/feeds v1.2.0
 	github.com/gosimple/slug v1.15.0
 	github.com/lmittmann/tint v1.0.6
-	github.com/samber/slog-graylog/v2 v2.7.1
+	github.com/samber/slog-graylog/v2 v2.7.2
 	github.com/samber/slog-multi v1.3.3
 	github.com/yuin/goldmark v1.7.8
 	github.com/yuin/goldmark-meta v1.1.0
@@ -20,5 +20,3 @@ require (
 	golang.org/x/text v0.21.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
-
-replace github.com/samber/slog-graylog/v2 => github.com/sokkalf/slog-graylog/v2 v2.0.0-20250104101435-958522cd435a
