@@ -3,3 +3,5 @@
 /view/static/app.js
 /view/static/app.js.map
 /tmp/*
+/blog/*
+/pages/*
