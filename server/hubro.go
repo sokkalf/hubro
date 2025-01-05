@@ -101,6 +101,9 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTimeCSS int
 		"rootPath": func() string {
 			return strings.TrimSuffix(h.config.RootPath, "/")
 		},
+		"baseURL": func() string {
+			return h.config.BaseURL
+		},
 		"staticPath": func(path string) string {
 			return strings.TrimSuffix(h.config.RootPath, "/") + "/static/" + path
 		},
@@ -170,6 +173,9 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTimeCSS int
 		},
 		"add": func(a, b int) int {
 			return a + b
+		},
+		"openGraphType": func() string {
+			return "website"
 		},
 	}
 
@@ -248,10 +254,12 @@ func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {
 	h.Render(w, r, "blogindex", struct {
 		FilterByTag string
 		Title       string
+		Description string
 		Page        int
 	}{
 		FilterByTag: tag,
 		Title:       h.config.Description,
+		Description: h.config.Description,
 		Page:        page,
 	})
 }
@@ -350,6 +358,13 @@ func (h *Hubro) RenderWithLayout(
 		"paginator": func(page int, entries []index.IndexEntry) template.HTML {
 			totalPages := (len(entries) + hc.Config.PostsPerPage - 1) / hc.Config.PostsPerPage
 			return helpers.Paginator(r.URL, page, totalPages, entries)
+		},
+		"openGraphType": func() string {
+			if templateName == "page" {
+				return "article"
+			} else {
+				return "website"
+			}
 		},
 	}
 	clone.Funcs(funcs)

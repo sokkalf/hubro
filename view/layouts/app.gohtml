@@ -11,6 +11,7 @@
   <link rel="alternate" type="application/rss+xml" title="{{ appTitle }}" href="{{ rootPath }}/feeds/rss">
   <link rel="alternate" type="application/atom+xml" title="{{ appTitle }}" href="{{ rootPath }}/feeds/atom">
   {{ end }}
+  {{ template "partials/_opengraph" . }}
   <link href="{{ appCSS }}" rel="stylesheet">
 </head>
 <body class="bg-gray-100">
