@@ -5,9 +5,13 @@ tmp_dir = "tmp"
 
 [build]
   bin = "./tmp/hubro"
-  cmd = "go build -o ./tmp/hubro . && bin/tailwindcss -c view/tailwind.config.js -i view/assets/css/app.css -o view/static/app.css"
+  cmd = """
+  go build -o ./tmp/hubro . &&
+  bin/tailwindcss -c view/tailwind.config.js -i view/assets/css/app.css -o view/static/app.css &&
+  bin/esbuild view/assets/js/app.js --target=es2017 --bundle --sourcemap --outfile=view/static/app.js
+  """
   delay = 100
-  include_ext = ["go", "gohtml", "json", "css"]
+  include_ext = ["go", "gohtml", "json", "css", "js"]
   exclude_dir = ["tmp", "view/assets/vendor", "view/static", "bin"]
   exclude_regex = ["\\.?#.+", ".+~"]
   exclude_unchanged = false

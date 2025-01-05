@@ -1,4 +1,8 @@
-// vim: ft=javascript
+import htmx from "../vendor/htmx/htmx.min.js";
+import hljs from "../vendor/highlight/highlight.min.js";
+
+window.hljs = hljs
+
 function timeAgo(input) {
 	const date = (input instanceof Date) ? input : new Date(input);
 	const formatter = new Intl.RelativeTimeFormat('en');
@@ -34,15 +38,18 @@ function boostLocalLinks() {
 		}
 	});
 }
-highlightNewCodeBlocks();
-boostLocalLinks();
-document.addEventListener('alpine:init', () => {
-	Alpine.directive('timeago', el => {
-		if (el.getAttribute("data-processed")) {
-			return;
-		}
-		el.setAttribute("title", el.textContent);
-		el.setAttribute("data-processed", "true");
-		el.textContent = timeAgo(el.textContent);
+
+window.HubroInit = function() {
+	highlightNewCodeBlocks();
+	boostLocalLinks();
+	document.addEventListener('alpine:init', () => {
+		Alpine.directive('timeago', el => {
+			if (el.getAttribute("data-processed")) {
+				return;
+			}
+			el.setAttribute("title", el.textContent);
+			el.setAttribute("data-processed", "true");
+			el.textContent = timeAgo(el.textContent);
+		});
 	});
-});
+}

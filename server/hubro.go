@@ -93,7 +93,7 @@ func (h *Hubro) createSubMux(prefix string, module HubroModule, options interfac
 	return mux
 }
 
-func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64) {
+func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTimeCSS int64, modTimeJS int64) {
 	defaultFuncMap := template.FuncMap{
 		"appTitle": func() string {
 			return h.config.Title
@@ -108,7 +108,10 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTime int64)
 			return strings.TrimSuffix(h.config.RootPath, "/") + "/vendor/" + path
 		},
 		"appCSS": func() string {
-			return fmt.Sprintf("%s/static/app.css?v=%d", strings.TrimSuffix(h.config.RootPath, "/"), modTime)
+			return fmt.Sprintf("%s/static/app.css?v=%d", strings.TrimSuffix(h.config.RootPath, "/"), modTimeCSS)
+		},
+		"appJS": func() string {
+			return fmt.Sprintf("%s/static/app.js?v=%d", strings.TrimSuffix(h.config.RootPath, "/"), modTimeJS)
 		},
 		"vendor": func(path string) string {
 			return strings.TrimSuffix(h.config.RootPath, "/") + VendorLibs[path]
@@ -382,13 +385,19 @@ func NewHubro(config Config) *Hubro {
 		publicDir: config.PublicDir,
 	}
 	cssFileName := "view/static/app.css"
-	assetModificationTime, err := os.Stat(cssFileName)
+	cssAssetModificationTime, err := os.Stat(cssFileName)
 	if err != nil {
 		slog.Error("Error getting file info, CSS file not found", "filename", cssFileName)
 		panic(err)
 	}
+	jsFileName := "view/static/app.js"
+	jsAssetModificationTime, err := os.Stat(jsFileName)
+	if err != nil {
+		slog.Error("Error getting file info, JS file not found", "filename", jsFileName)
+		panic(err)
+	}
 	go func() {
-		h.initTemplates(config.LayoutDir, config.TemplateDir, assetModificationTime.ModTime().Unix())
+		h.initTemplates(config.LayoutDir, config.TemplateDir, cssAssetModificationTime.ModTime().Unix(), jsAssetModificationTime.ModTime().Unix())
 	}()
 	go func() {
 		h.initStaticFiles()

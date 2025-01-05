@@ -1,3 +1,5 @@
 /bin/*
 /view/static/app.css
+/view/static/app.js
+/view/static/app.js.map
 /tmp/*

@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>{{ .Title }} - {{ appTitle }}</title>
-  <script src="{{ vendor "htmx" }}"></script>
-  <script src="{{ vendor "highlight.js" }}"></script>
+  <script src="{{ appJS }}"></script>
   <script defer src="{{ vendor "alpine.js" }}"></script>
   {{ if getConfig.FeedsEnabled }}
   <link rel="alternate" type="application/rss+xml" title="{{ appTitle }}" href="{{ rootPath }}/feeds/rss">
@@ -22,7 +21,7 @@
 	</main>
 	{{ template "partials/_footer" . }}
 	<script>
-		{{ template "partials/_scripts.js" . }}
+		window.HubroInit();
 	</script>
 </body>
 </html>
