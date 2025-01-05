@@ -75,10 +75,12 @@ func LogMiddleware() server.Middleware {
 				query := r.URL.Query().Encode()
 				if query != "" {
 					slog.Info(fmt.Sprintf("%s %s?%s", r.Method, r.URL.Path, query),
-						"remoteaddr", remoteAddr, "proxied", proxied, "status", ew.StatusCode, "user-agent", userAgent, "hx-boosted", hxBoosted, "duration", time.Since(start))
+						"remoteaddr", remoteAddr, "proxied", proxied, "status", ew.StatusCode,
+						"user-agent", userAgent, "hx-boosted", hxBoosted, "duration", time.Since(start))
 				} else {
 					slog.Info(fmt.Sprintf("%s %s", r.Method, r.URL.Path),
-						"remoteaddr", remoteAddr, "proxied", proxied, "status", ew.StatusCode, "user-agent", userAgent, "hx-boosted", hxBoosted, "duration", time.Since(start))
+						"remoteaddr", remoteAddr, "proxied", proxied, "status", ew.StatusCode,
+						"user-agent", userAgent, "hx-boosted", hxBoosted, "duration", time.Since(start))
 				}
 			})
 		}

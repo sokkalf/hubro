@@ -47,10 +47,10 @@ const (
 	defaultErrorTemplate = "errors/default"
 )
 
-var publicFileWhiteList = []string{"favicon.ico", "robots.txt", "sitemap.xml", "manifest.json", "apple-touch-icon.png",
-	"security.txt", "android-chrome-192x192.png", "android-chrome-512x512.png", "browserconfig.xml", "site.webmanifest",
-	"favicon.png", "favicon-16x16.png", "favicon-32x32.png", "favicon-96x96.png", "favicon-192x192.png", "favicon-512x512.png",
-	"cache_manifest.json"}
+var publicFileWhiteList = []string{"favicon.ico", "robots.txt", "sitemap.xml", "manifest.json",
+	"apple-touch-icon.png", "security.txt", "android-chrome-192x192.png", "android-chrome-512x512.png",
+	"browserconfig.xml", "site.webmanifest", "favicon.png", "favicon-16x16.png", "favicon-32x32.png",
+	"favicon-96x96.png", "favicon-192x192.png", "favicon-512x512.png", "cache_manifest.json"}
 
 var VendorLibs map[string]string = map[string]string{
 	"htmx":         "/vendor/htmx/htmx.min.js",
@@ -321,7 +321,13 @@ func (h *Hubro) ErrorHandler(w http.ResponseWriter, r *http.Request, status int,
 	return
 }
 
-func (h *Hubro) RenderWithLayout(w http.ResponseWriter, r *http.Request, layoutName string, templateName string, data interface{}) {
+func (h *Hubro) RenderWithLayout(
+	w http.ResponseWriter,
+	r *http.Request,
+	layoutName string,
+	templateName string,
+	data interface{}) {
+
 	if data == nil {
 		data = map[string]interface{}{}
 	}
@@ -397,7 +403,10 @@ func NewHubro(config Config) *Hubro {
 		panic(err)
 	}
 	go func() {
-		h.initTemplates(config.LayoutDir, config.TemplateDir, cssAssetModificationTime.ModTime().Unix(), jsAssetModificationTime.ModTime().Unix())
+		h.initTemplates(config.LayoutDir,
+			config.TemplateDir,
+			cssAssetModificationTime.ModTime().Unix(),
+			jsAssetModificationTime.ModTime().Unix())
 	}()
 	go func() {
 		h.initStaticFiles()

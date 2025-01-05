@@ -38,7 +38,7 @@ func slugify(s string) string {
 	return slug.Make(s)
 }
 
-func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markdown, path string, opts PageOptions, isUpdate bool) error {
+func parse(prefix string, md goldmark.Markdown, path string, opts PageOptions, isUpdate bool) error {
 	var title string
 	var description string
 	var author string
@@ -161,7 +161,7 @@ func parse(prefix string, h *server.Hubro, mux *http.ServeMux, md goldmark.Markd
 	return nil
 }
 
-func handler(h *server.Hubro, mux *http.ServeMux, index *index.Index) http.HandlerFunc {
+func handler(h *server.Hubro, index *index.Index) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slug := strings.TrimPrefix(r.URL.Path, "/")
 		entry := index.GetEntryBySlug(slug)
@@ -176,7 +176,7 @@ func handler(h *server.Hubro, mux *http.ServeMux, index *index.Index) http.Handl
 	}
 }
 
-func scanMarkdownFiles(prefix string, h *server.Hubro, mux *http.ServeMux, opts PageOptions) (int, int, int, int) {
+func scanMarkdownFiles(prefix string, opts PageOptions) (int, int, int, int) {
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM, meta.Meta),
 		goldmark.WithParserOptions(parser.WithAutoHeadingID()),
@@ -207,9 +207,9 @@ func scanMarkdownFiles(prefix string, h *server.Hubro, mux *http.ServeMux, opts 
 			if !alreadyIndexed {
 				var err error
 				if isUpdate {
-					err = parse(prefix, h, mux, md, path, opts, true)
+					err = parse(prefix, md, path, opts, true)
 				} else {
-					err = parse(prefix, h, mux, md, path, opts, false)
+					err = parse(prefix, md, path, opts, false)
 				}
 				if err != nil {
 					slog.Error("Error parsing page", "page", path, "error", err)
@@ -272,18 +272,19 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 	if !ok {
 		slog.Error("Invalid options for page module")
 	}
-	scanMarkdownFiles(prefix, h, mux, opts)
+	scanMarkdownFiles(prefix, opts)
 	opts.Index.Sort()
-	mux.HandleFunc("/", handler(h, mux, opts.Index))
+	mux.HandleFunc("/", handler(h, opts.Index))
 	slog.Info("Registered pages", "duration", time.Since(start))
 	slog.Debug("Scanning for new pages every 30 seconds", "index", opts.Index.GetName())
 
 	go func() {
 		for {
 			time.Sleep(30 * time.Second)
-			n, nNew, nUpdated, nDeleted := scanMarkdownFiles(prefix, h, mux, opts)
+			n, nNew, nUpdated, nDeleted := scanMarkdownFiles(prefix, opts)
 			if n > 0 {
-				slog.Info("Found new or updated pages", "index", opts.Index.GetName(), "new", nNew, "updated", nUpdated, "deleted", nDeleted)
+				slog.Info("Found new or updated pages", "index", opts.Index.GetName(),
+					"new", nNew, "updated", nUpdated, "deleted", nDeleted)
 				opts.Index.Sort()
 				opts.Index.MsgBroker.Publish(index.Reset)
 			}
