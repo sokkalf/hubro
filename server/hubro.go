@@ -17,6 +17,7 @@ import (
 	hc "github.com/sokkalf/hubro/config"
 	"github.com/sokkalf/hubro/helpers"
 	"github.com/sokkalf/hubro/index"
+	"github.com/sokkalf/hubro/utils"
 )
 
 type Config struct {
@@ -139,11 +140,11 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTimeCSS int
 					return entries.Entries
 				} else {
 					var filteredEntries []index.IndexEntry
-					for _, entry := range entries.Entries {
-						if slices.Contains(entry.Tags, filterTag) {
-							filteredEntries = append(filteredEntries, entry)
-						}
-					}
+
+					filteredEntries = utils.Filter(func(entry index.IndexEntry) bool {
+						return slices.Contains(entry.Tags, filterTag)
+					}, entries.Entries)
+
 					return filteredEntries
 				}
 			}

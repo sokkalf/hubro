@@ -5,9 +5,11 @@ import (
 	"html/template"
 	"log/slog"
 	"sort"
+	"strings"
 
 	"github.com/sokkalf/hubro/config"
 	"github.com/sokkalf/hubro/index"
+	"github.com/sokkalf/hubro/utils"
 )
 
 func TagCloudInit(idx *index.Index) {
@@ -73,10 +75,9 @@ func GenerateTagCloud(idx *index.Index) template.HTML {
 	}
 	sort.Strings(sortedTags)
 
-	var tagCloudHTML string
-	for _, tag := range sortedTags {
-		tagCloudHTML += tagHTML(tag, tagCloud[tag])
-	}
+	tagCloudHTML := strings.Join(utils.Map(func(tag string) string {
+		return tagHTML(tag, tagCloud[tag])
+	}, sortedTags), "")
 
 	tmpl := template.HTML(tagCloudHTML)
 	globalCache.set(idx, &tmpl)
