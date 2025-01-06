@@ -43,6 +43,7 @@ window.HubroInit = function() {
 	highlightNewCodeBlocks();
 	boostLocalLinks();
 	document.addEventListener('alpine:init', () => {
+		Alpine.prefix('data-x-');
 		Alpine.directive('timeago', el => {
 			if (el.getAttribute("data-processed")) {
 				return;

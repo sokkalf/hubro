@@ -15,7 +15,7 @@
 			<p class="text-sm text-gray-500">
 			{{ if not .HideAuthor }}
 				{{ if .Author }}
-				by {{ .Author }}{{ if not .Date.IsZero }}, <span x-timeago>{{ .Date | format_date }}</span>{{ end }}
+				by {{ .Author }}{{ if not .Date.IsZero }}, <span data-x-timeago>{{ .Date | format_date }}</span>{{ end }}
 				{{ end }}
 			{{ end }}
 			</p>
