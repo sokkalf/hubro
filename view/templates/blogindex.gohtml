@@ -23,6 +23,11 @@
 		<div class="markdown-body">
 			{{.Summary}}
 		</div>
+		{{ if not (equalTemplates .Summary .Body) }}
+		<div class="text-right">
+			<a data-hx-boost="true" href="{{ rootPath }}{{ .Path }}" class="pr-5 text-indigo-800">Read more</a>
+		</div>
+		{{ end }}
 	</div>
 	<div class="py-4 spacer bg-grey-200"></div>
 	{{ $count = add $count 1 }}

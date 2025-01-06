@@ -177,6 +177,9 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTimeCSS int
 		"openGraphType": func() string {
 			return "website"
 		},
+		"equalTemplates": func(t1 *template.HTML, t2 *template.HTML) bool {
+			return *t1 == *t2
+		},
 	}
 
 	h.Templates = template.New("root")
