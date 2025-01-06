@@ -3,13 +3,7 @@
 	<h1 class="text-3xl font-semibold">
 		{{.Title}}
 	</h1>
-	<div class="py-2 tags">
-		{{ range .Tags }}
-			<span class="mx-1 rounded-full bg-indigo-300 px-3 py-1 text-sm tag">
-				<a data-hx-boost="true" href="{{ rootPath }}?tag={{ . }}">{{ . }}</a>
-			</span>
-		{{ end }}
-	</div>
+	{{ template "partials/_tags" . }}
 	{{ end }}
 	{{ if not .HideAuthor }}
 	<div class="py-2 author">
