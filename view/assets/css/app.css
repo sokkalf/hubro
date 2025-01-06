@@ -80,10 +80,6 @@ footer {
 	padding: 4px 4px;
 }
 
-#elixir-image {
-	filter: grayscale(100%) invert(100%);
-}
-
 .pagination {
 	display: flex;
 	justify-content: center;
