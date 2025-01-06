@@ -22,14 +22,10 @@ github.com/samber/slog-graylog/v2 v2.7.2 h1:sqQCGMdvg2g0WCZcy+pKN69YYaPq7rHvLANg
 github.com/samber/slog-graylog/v2 v2.7.2/go.mod h1:MmU+tN42Xlgvkke3aZMs3R4kHxdXY9r43N9VfuEK5Ms=
 github.com/samber/slog-multi v1.3.3 h1:qhFXaYdW73FIWLt8SrXMXfPwY58NpluzKDwRdPvhWWY=
 github.com/samber/slog-multi v1.3.3/go.mod h1:ACuZ5B6heK57TfMVkVknN2UZHoFfjCwRxR0Q2OXKHlo=
-github.com/sokkalf/slog-graylog/v2 v2.0.0-20250104101435-958522cd435a h1:jkA3Zc46czveNxPpxgg26ACc1mIcT+zdP6b0Gb050tI=
-github.com/sokkalf/slog-graylog/v2 v2.0.0-20250104101435-958522cd435a/go.mod h1:j5RpnjGvxpk+SQdQAncNCtyOpGHPQCLf4OErzDjd2iY=
 github.com/yuin/goldmark v1.7.8 h1:iERMLn0/QJeHFhxSt3p6PeN9mGnvIKSpG9YYorDMnic=
 github.com/yuin/goldmark v1.7.8/go.mod h1:uzxRWxtg69N339t3louHJ7+O03ezfj6PlliRlaOzY1E=
 github.com/yuin/goldmark-meta v1.1.0 h1:pWw+JLHGZe8Rk0EGsMVssiNb/AaPMHfSRszZeUeiOUc=
 github.com/yuin/goldmark-meta v1.1.0/go.mod h1:U4spWENafuA7Zyg+Lj5RqK/MF+ovMYtBvXi1lBb2VP0=
-go.uber.org/goleak v1.3.0 h1:2K3zAYmnTNqV73imy9J1T3WC+gmCePx2hEGkimedGto=
-go.uber.org/goleak v1.3.0/go.mod h1:CoHD4mav9JJNrW/WLlf7HGZPjdw8EucARQHekz1X6bE=
 golang.org/x/text v0.21.0 h1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=
 golang.org/x/text v0.21.0/go.mod h1:4IBbMaMmOPCJ8SecivzSH54+73PCFmPWxNTLm+vZkEQ=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
