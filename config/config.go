@@ -22,6 +22,7 @@ type HubroConfig struct {
 	PagesDir            string
 	UserStaticDir       string
 	LogoImage           string
+	UserCSS             bool
 	PostsPerPage        int
 	Version             string
 	Environment         string
@@ -121,6 +122,12 @@ func Init() {
 	fi, err := os.Stat(config.UserStaticDir + "/" + config.LogoImage)
 	if err != nil && fi == nil {
 		config.LogoImage = "" // no logo image found
+	}
+	fi, err = os.Stat(config.UserStaticDir + "/user.css")
+	if err != nil && fi == nil {
+		config.UserCSS = false
+	} else {
+		config.UserCSS = true
 	}
 	Config = &config
 }

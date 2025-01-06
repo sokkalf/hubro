@@ -13,6 +13,9 @@
   {{ end }}
   {{ template "partials/_opengraph" . }}
   <link href="{{ appCSS }}" rel="stylesheet">
+  {{ if getConfig.UserCSS }}
+  <link href="{{ rootPath }}/userfiles/user.css" rel="stylesheet">
+  {{ end }}
 </head>
 <body class="bg-gray-100">
 	{{ template "partials/_topbar" . }}

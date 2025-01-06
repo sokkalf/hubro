@@ -63,12 +63,6 @@ footer {
 	width: 100%;
 }
 
-.avatar {
-	width: 150px;
-	height: 150px;
-	filter: invert(100%);
-}
-
 .markdown-body img {
 	/* rounded corners */
 	border-radius: 5px;
