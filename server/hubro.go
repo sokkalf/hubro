@@ -180,6 +180,9 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTimeCSS int
 		"equalTemplates": func(t1 *template.HTML, t2 *template.HTML) bool {
 			return *t1 == *t2
 		},
+		"logoImage": func() template.HTML {
+			return helpers.GetLogoImage()
+		},
 	}
 
 	h.Templates = template.New("root")
@@ -224,7 +227,7 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTimeCSS int
 	})
 }
 
-func (hu *Hubro) fileServerWithDirectoryListingDisabled(h http.Handler) http.Handler {
+func (hu *Hubro) FileServerWithDirectoryListingDisabled(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(r.URL.Path, "/") || r.URL.Path == "" {
 			msg := "Directory listing is disallowed"
@@ -238,12 +241,12 @@ func (hu *Hubro) fileServerWithDirectoryListingDisabled(h http.Handler) http.Han
 
 func (h *Hubro) initStaticFiles() {
 	fs := http.FileServer(http.Dir("./view/static"))
-	h.Mux.Handle("GET /static/", http.StripPrefix("/static/", h.fileServerWithDirectoryListingDisabled(fs)))
+	h.Mux.Handle("GET /static/", http.StripPrefix("/static/", h.FileServerWithDirectoryListingDisabled(fs)))
 }
 
 func (h *Hubro) initVendorDir(vendorDir fs.FS) {
 	fs := http.FileServer(http.FS(vendorDir))
-	h.Mux.Handle("GET /vendor/", http.StripPrefix("/vendor/", h.fileServerWithDirectoryListingDisabled(fs)))
+	h.Mux.Handle("GET /vendor/", http.StripPrefix("/vendor/", h.FileServerWithDirectoryListingDisabled(fs)))
 }
 
 func (h *Hubro) indexHandler(w http.ResponseWriter, r *http.Request) {

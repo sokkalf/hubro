@@ -20,6 +20,8 @@ type HubroConfig struct {
 	LegacyRoutesFile    string
 	BlogDir             string
 	PagesDir            string
+	UserStaticDir       string
+	LogoImage           string
 	PostsPerPage        int
 	Version             string
 	Environment         string
@@ -41,6 +43,8 @@ func Init() {
 		LegacyRoutesFile:    "./legacyRoutes.json",
 		BlogDir:             "./blog",
 		PagesDir:            "./pages",
+		UserStaticDir:       "./userfiles",
+		LogoImage:           "logo.svg",
 		PostsPerPage:        10,
 		Version:             "0.0.1-dev",
 		Environment:         "development",
@@ -107,6 +111,16 @@ func Init() {
 	}
 	if gelfEndpoint, ok := os.LookupEnv("HUBRO_GELF_ENDPOINT"); ok {
 		config.GelfEndpoint = &gelfEndpoint
+	}
+	if userStaticDir, ok := os.LookupEnv("HUBRO_USERFILES_DIR"); ok {
+		config.UserStaticDir = userStaticDir
+	}
+	if logoImage, ok := os.LookupEnv("HUBRO_LOGO_IMAGE"); ok {
+		config.LogoImage = logoImage
+	}
+	fi, err := os.Stat(config.UserStaticDir + "/" + config.LogoImage)
+	if err != nil && fi == nil {
+		config.LogoImage = "" // no logo image found
 	}
 	Config = &config
 }

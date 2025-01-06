@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"io/fs"
 	"log/slog"
 	"os"
 	"sync"
@@ -16,6 +17,7 @@ import (
 	"github.com/sokkalf/hubro/modules/healthcheck"
 	"github.com/sokkalf/hubro/modules/page"
 	"github.com/sokkalf/hubro/modules/redirects"
+	userstatic "github.com/sokkalf/hubro/modules/user_static"
 	"github.com/sokkalf/hubro/server"
 )
 
@@ -35,6 +37,7 @@ func main() {
 	pagesDir := os.DirFS(config.Config.PagesDir)
 	blogDir := os.DirFS(config.Config.BlogDir)
 
+
 	cfg := server.Config{
 		RootPath:    config.Config.RootPath,
 		Port:        config.Config.Port,
@@ -46,6 +49,16 @@ func main() {
 	h := server.NewHubro(cfg)
 	h.Use(logging.LogMiddleware())
 	h.AddModule("/healthz", healthcheck.Register, nil)
+	var userStaticDir fs.FS
+	usd, err := os.Stat(config.Config.UserStaticDir)
+	if err != nil {
+		slog.Info("No userfiles directory found")
+	} else if usd.IsDir() {
+		userStaticDir = os.DirFS(config.Config.UserStaticDir)
+		h.AddModule("/userfiles", userstatic.Register, userStaticDir)
+	} else {
+		slog.Error("User static directory is not a directory")
+	}
 	pageIndex := index.NewIndex("pages", config.Config.RootPath+"page")
 	pageIndex.SetSortMode(index.SortBySortOrder)
 	blogIndex := index.NewIndex("blog", config.Config.RootPath+"blog")
