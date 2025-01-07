@@ -38,7 +38,7 @@ type IndexEntry struct {
 type Message int
 
 const (
-	Reset Message = iota
+	Updated Message = iota
 )
 
 type Index struct {

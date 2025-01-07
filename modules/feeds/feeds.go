@@ -28,7 +28,7 @@ func InitFeeds(i *index.Index) *Feeds {
 		msgChan := i.MsgBroker.Subscribe()
 		for {
 			switch <-msgChan {
-			case index.Reset:
+			case index.Updated:
 				slog.Debug("Resetting feed cache")
 				f.feedCacheMutex.Lock()
 				f.feedCache[i] = getFeedFromIndex(i)

@@ -287,7 +287,7 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 				slog.Info("Found new or updated pages", "index", opts.Index.GetName(),
 					"new", nNew, "updated", nUpdated, "deleted", nDeleted, "duration", time.Since(start))
 				opts.Index.Sort()
-				opts.Index.MsgBroker.Publish(index.Reset)
+				opts.Index.MsgBroker.Publish(index.Updated)
 			}
 		}
 	}()
