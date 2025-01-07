@@ -176,13 +176,12 @@ func handler(h *server.Hubro, index *index.Index) http.HandlerFunc {
 	}
 }
 
-func scanMarkdownFiles(prefix string, opts PageOptions) (int, int, int, int) {
+func scanMarkdownFiles(prefix string, opts PageOptions) (filesScanned, numNew, numUpdated, numDeleted int) {
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM, meta.Meta),
 		goldmark.WithParserOptions(parser.WithAutoHeadingID()),
 		goldmark.WithRendererOptions(html.WithUnsafe()),
 	)
-	filesScanned, numDeleted, numUpdated, numNew := 0, 0, 0, 0
 	filesScannedList := make([]string, 0)
 	fs.WalkDir(opts.FilesDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".md") {
