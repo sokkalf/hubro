@@ -185,7 +185,11 @@ func scanMarkdownFiles(prefix string, opts PageOptions) (filesScanned, numNew, n
 	filesScannedList := make([]string, 0)
 	fs.WalkDir(opts.FilesDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".md") {
-			fi, _ := d.Info()
+			fi, err := d.Info()
+			if err != nil {
+				slog.Error("Error getting file info", "file", path, "error", err)
+				return err
+			}
 			indexedPagesMutex.Lock()
 			if indexedPages[opts.Index] == nil {
 				slog.Debug("Initializing indexed pages", "index", opts.Index.GetName())
