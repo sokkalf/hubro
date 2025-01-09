@@ -71,9 +71,10 @@ window.HubroInit = function() {
 
 	// Add a copy button to code blocks
 	document.addEventListener('htmx:load', function() {
-	  const codeBlocks = document.querySelectorAll("pre > code");
+	  const codeBlocks = document.querySelectorAll("pre > code:not(.copy-button-added)");
 
 	  codeBlocks.forEach((codeEl) => {
+		codeEl.classList.add("copy-button-added");
 		const preEl = codeEl.parentElement;
 
 		const wrapper = document.createElement("div");
