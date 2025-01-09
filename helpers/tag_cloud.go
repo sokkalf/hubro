@@ -29,6 +29,8 @@ func TagCloudInit(idx *index.Index) {
 
 func tagCloudMap(idx *index.Index) map[string]int {
 	tagCloud := make(map[string]int)
+	idx.RLock()
+	defer idx.RUnlock()
 	for _, entry := range idx.Entries {
 		for _, tag := range entry.Tags {
 			tagCloud[tag]++

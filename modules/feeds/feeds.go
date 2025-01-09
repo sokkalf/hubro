@@ -41,6 +41,8 @@ func InitFeeds(i *index.Index) *Feeds {
 }
 
 func getFeedFromIndex(index *index.Index) *gorillafeeds.Feed {
+	index.RLock()
+	defer index.RUnlock()
 	config := config.Config
 	var author *gorillafeeds.Author
 	if config.DisplayAuthorInFeed {

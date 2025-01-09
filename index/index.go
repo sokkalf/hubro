@@ -43,15 +43,14 @@ const (
 )
 
 type Index struct {
-	Entries     []IndexEntry `json:"entries"`
-	rootPath    string
-	name        string
-	lookup      map[string]*IndexEntry
-	slugLookup  map[string]*IndexEntry
-	lookupMutex sync.RWMutex
-	sortMutex   sync.Mutex
-	sortMode    int
-	MsgBroker   *broker.Broker[Message]
+	Entries    []IndexEntry `json:"entries"`
+	rootPath   string
+	name       string
+	lookup     map[string]*IndexEntry
+	slugLookup map[string]*IndexEntry
+	mtx        sync.RWMutex
+	sortMode   int
+	MsgBroker  *broker.Broker[Message]
 }
 
 const (
@@ -111,11 +110,11 @@ func (i *Index) AddEntry(e IndexEntry) error {
 		return fmt.Errorf("entry with ID %s already exists", e.Id)
 	}
 	e.Path = i.rootPath + e.Path
-	i.lookupMutex.Lock()
+	i.mtx.Lock()
+	defer i.mtx.Unlock()
 	i.Entries = append(i.Entries, e)
 	i.lookup[e.Id] = &e
 	i.slugLookup[e.Slug] = &e
-	i.lookupMutex.Unlock()
 	return nil
 }
 
@@ -127,7 +126,8 @@ func (i *Index) UpdateEntry(e IndexEntry) error {
 		return fmt.Errorf("entry with ID %s does not exist", e.Id)
 	}
 	e.Path = i.rootPath + e.Path
-	i.lookupMutex.Lock()
+	i.mtx.Lock()
+	defer i.mtx.Unlock()
 	for j, entry := range i.Entries {
 		if entry.Id == e.Id {
 			i.Entries[j] = e
@@ -136,7 +136,6 @@ func (i *Index) UpdateEntry(e IndexEntry) error {
 			break
 		}
 	}
-	i.lookupMutex.Unlock()
 	return nil
 }
 
@@ -144,7 +143,8 @@ func (i *Index) DeleteEntry(id string) error {
 	if i.GetEntry(id) == nil {
 		return fmt.Errorf("entry with ID %s does not exist", id)
 	}
-	i.lookupMutex.Lock()
+	i.mtx.Lock()
+	defer i.mtx.Unlock()
 	for j, entry := range i.Entries {
 		if entry.Id == id {
 			slog.Info("Deleting entry", "id", id)
@@ -154,19 +154,40 @@ func (i *Index) DeleteEntry(id string) error {
 			break
 		}
 	}
-	i.lookupMutex.Unlock()
 	return nil
 }
 
+func (i *Index) RLock() {
+	i.mtx.RLock()
+}
+
+func (i *Index) RUnlock() {
+	i.mtx.RUnlock()
+}
+
+func (i *Index) Lock() {
+	i.mtx.Lock()
+}
+
+func (i *Index) Unlock() {
+	i.mtx.Unlock()
+}
+
+func (i *Index) GetEntries() []IndexEntry {
+	i.mtx.RLock()
+	defer i.mtx.RUnlock()
+	return i.Entries
+}
+
 func (i *Index) GetEntry(id string) *IndexEntry {
-	i.lookupMutex.RLock()
-	defer i.lookupMutex.RUnlock()
+	i.mtx.RLock()
+	defer i.mtx.RUnlock()
 	return i.lookup[id]
 }
 
 func (i *Index) GetEntryBySlug(slug string) *IndexEntry {
-	i.lookupMutex.RLock()
-	defer i.lookupMutex.RUnlock()
+	i.mtx.RLock()
+	defer i.mtx.RUnlock()
 	return i.slugLookup[slug]
 }
 
@@ -182,27 +203,29 @@ func (i *Index) Sort() {
 }
 
 func (i *Index) SortBySortOrder() {
-	i.sortMutex.Lock()
+	i.mtx.Lock()
+	defer i.mtx.Unlock()
 	if i.Entries == nil {
 		return
 	}
 	sort.Slice(i.Entries, func(j, k int) bool {
 		return i.Entries[j].SortOrder < i.Entries[k].SortOrder
 	})
-	i.sortMutex.Unlock()
 }
 
 func (i *Index) SortByDate() {
-	i.sortMutex.Lock()
+	i.mtx.Lock()
+	defer i.mtx.Unlock()
 	if i.Entries == nil {
 		return
 	}
 	sort.Slice(i.Entries, func(j, k int) bool {
 		return i.Entries[k].Date.Before(i.Entries[j].Date)
 	})
-	i.sortMutex.Unlock()
 }
 
 func (i *Index) Count() int {
+	i.mtx.RLock()
+	defer i.mtx.RUnlock()
 	return len(i.Entries)
 }
