@@ -4,25 +4,41 @@ import (
 	"io/fs"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/sokkalf/hubro/index"
 )
 
+const debounceDuration = 500 * time.Millisecond
+
 func WatchFS(dir string, idx *index.Index) (*fs.FS, error) {
-	fs := os.DirFS(dir)
+	fsys := os.DirFS(dir)
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err
 	}
-	watcher.Add(dir)
+
+	if err := watcher.Add(dir); err != nil {
+		return nil, err
+	}
+
+	trigger := make(chan struct{})
+
 	go func() {
+		var timer *time.Timer
+
 		for {
 			select {
 			case event := <-watcher.Events:
-				if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create || event.Op&fsnotify.Remove == fsnotify.Remove {
-					slog.Info("File modified", "file", event.Name)
-					idx.MsgBroker.Publish(index.Scanned)
+				if event.Op&(fsnotify.Write|fsnotify.Create|fsnotify.Remove) != 0 {
+					// Reset the timer every time we get a relevant event
+					if timer != nil {
+						timer.Stop()
+					}
+					timer = time.AfterFunc(debounceDuration, func() {
+						trigger <- struct{}{}
+					})
 				}
 			case err := <-watcher.Errors:
 				if err != nil {
@@ -32,5 +48,12 @@ func WatchFS(dir string, idx *index.Index) (*fs.FS, error) {
 		}
 	}()
 
-	return &fs, nil
+	go func() {
+		for range trigger {
+			slog.Info("Starting directory scan")
+			idx.MsgBroker.Publish(index.Scanned)
+		}
+	}()
+
+	return &fsys, nil
 }
