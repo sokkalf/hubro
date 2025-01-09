@@ -14,9 +14,11 @@ require (
 )
 
 require (
+	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/samber/lo v1.47.0 // indirect
 	github.com/samber/slog-common v0.18.1 // indirect
+	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

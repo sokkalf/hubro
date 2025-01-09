@@ -21,8 +21,7 @@ func TagCloudInit(idx *index.Index) {
 			case index.Updated:
 				slog.Debug("Resetting tag cloud cache")
 				globalCache.reset()
-			default:
-				slog.Error("Unknown message received")
+			default: // Ignore other messages
 			}
 		}
 	}()

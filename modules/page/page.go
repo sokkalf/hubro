@@ -278,15 +278,19 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 	slog.Debug("Scanning for new pages every 30 seconds", "index", opts.Index.GetName())
 
 	go func() {
+		msgChan := opts.Index.MsgBroker.Subscribe()
 		for {
-			time.Sleep(30 * time.Second)
-			start := time.Now()
-			n, nNew, nUpdated, nDeleted := scanMarkdownFiles(prefix, opts)
-			if n > 0 {
-				slog.Info("Found new or updated pages", "index", opts.Index.GetName(),
-					"new", nNew, "updated", nUpdated, "deleted", nDeleted, "duration", time.Since(start))
-				opts.Index.Sort()
-				opts.Index.MsgBroker.Publish(index.Updated)
+			switch <-msgChan {
+			case index.Scanned:
+				start := time.Now()
+				n, nNew, nUpdated, nDeleted := scanMarkdownFiles(prefix, opts)
+				if n > 0 {
+					slog.Info("Found new or updated pages", "index", opts.Index.GetName(),
+						"new", nNew, "updated", nUpdated, "deleted", nDeleted, "duration", time.Since(start))
+					opts.Index.Sort()
+					opts.Index.MsgBroker.Publish(index.Updated)
+				}
+			default: // Ignore other messages
 			}
 		}
 	}()

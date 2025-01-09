@@ -39,6 +39,7 @@ type Message int
 
 const (
 	Updated Message = iota
+	Scanned
 )
 
 type Index struct {

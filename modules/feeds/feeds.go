@@ -33,8 +33,7 @@ func InitFeeds(i *index.Index) *Feeds {
 				f.feedCacheMutex.Lock()
 				f.feedCache[i] = getFeedFromIndex(i)
 				f.feedCacheMutex.Unlock()
-			default:
-				slog.Error("Unknown message received")
+			default: // Ignore other messages
 			}
 		}
 	}()

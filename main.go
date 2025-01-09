@@ -19,6 +19,7 @@ import (
 	"github.com/sokkalf/hubro/modules/redirects"
 	userstatic "github.com/sokkalf/hubro/modules/user_static"
 	"github.com/sokkalf/hubro/server"
+	"github.com/sokkalf/hubro/utils/watchfs"
 )
 
 // Overwritten by the build system
@@ -34,8 +35,6 @@ func main() {
 	layoutDir := os.DirFS("view/layouts")
 	templateDir := os.DirFS("view/templates")
 	publicDir := os.DirFS("view/public")
-	pagesDir := os.DirFS(config.Config.PagesDir)
-	blogDir := os.DirFS(config.Config.BlogDir)
 
 
 	cfg := server.Config{
@@ -63,17 +62,25 @@ func main() {
 	pageIndex.SetSortMode(index.SortBySortOrder)
 	blogIndex := index.NewIndex("blog", config.Config.RootPath+"blog")
 	blogIndex.SetSortMode(index.SortByDate)
+	pagesDir, err := watchfs.WatchFS(config.Config.PagesDir, pageIndex)
+	if err != nil {
+		slog.Error("Error watching pages directory", "error", err)
+	}
+	blogDir, err := watchfs.WatchFS(config.Config.BlogDir, blogIndex)
+	if err != nil {
+		slog.Error("Error watching blog directory", "error", err)
+	}
 	helpers.TagCloudInit(pageIndex)
 	helpers.TagCloudInit(blogIndex)
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 	go func () {
 		defer wg.Done()
-		h.AddModule("/page", page.Register, page.PageOptions{FilesDir: pagesDir, Index: pageIndex})
+		h.AddModule("/page", page.Register, page.PageOptions{FilesDir: *pagesDir, Index: pageIndex})
 	}()
 	go func () {
 		defer wg.Done()
-		h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: blogDir, Index: blogIndex})
+		h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: *blogDir, Index: blogIndex})
 	}()
 	wg.Wait()
 	h.AddModule("/api/pages", pagesAPI.Register, []*index.Index{pageIndex, blogIndex})
