@@ -68,4 +68,53 @@ window.HubroInit = function() {
 			el.textContent = timeAgo(el.textContent);
 		});
 	});
+
+	// Add a copy button to code blocks
+	document.addEventListener('htmx:load', function() {
+	  const codeBlocks = document.querySelectorAll("pre > code");
+
+	  codeBlocks.forEach((codeEl) => {
+		const preEl = codeEl.parentElement;
+
+		const wrapper = document.createElement("div");
+		wrapper.classList.add("relative", "group");
+
+		preEl.parentNode.insertBefore(wrapper, preEl);
+		wrapper.appendChild(preEl);
+
+		const button = document.createElement("button");
+		button.innerText = "Copy";
+
+		button.classList.add(
+		  "hidden",
+		  "group-hover:inline-block",
+		  "absolute",
+		  "top-2",
+		  "right-2",
+		  "bg-gray-200",
+		  "px-2",
+		  "py-1",
+		  "rounded",
+		  "text-sm",
+		  "text-gray-600",
+		  "hover:text-gray-800",
+		  "hover:bg-gray-300"
+		);
+
+		wrapper.appendChild(button);
+
+		button.addEventListener("click", () => {
+		  navigator.clipboard
+			.writeText(codeEl.textContent)
+			.then(() => {
+			  button.innerText = "Copied!";
+			  setTimeout(() => (button.innerText = "Copy"), 1500);
+			})
+			.catch((err) => {
+			  console.error("Failed to copy text: ", err);
+			  button.innerText = "Error";
+			});
+		});
+	  });
+	});
 }

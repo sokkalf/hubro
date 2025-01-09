@@ -5,7 +5,7 @@ module.exports = {
 	  "./view/templates/**/*.html",
 	  "./view/layouts/**/*.gohtml",
 	  "./view/layouts/**/*.html",
-	  "./view/static/js/**/*.js",
+	  "./view/static/**/*.js",
 	  "./**/*.go",
 	  "./*.go",
   ],
