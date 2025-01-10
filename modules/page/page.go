@@ -190,12 +190,7 @@ func scanMarkdownFiles(prefix string, opts PageOptions) (filesScanned, numNew, n
 			idxVal := indexedPage{path: path, modTime: modTime}
 			indexedPagesMutex.Unlock()
 			if !alreadyIndexed {
-				var err error
-				if isUpdate {
-					err = parse(prefix, md, path, opts, true)
-				} else {
-					err = parse(prefix, md, path, opts, false)
-				}
+				err := parse(prefix, md, path, opts, isUpdate)
 				if err != nil {
 					slog.Error("Error parsing page", "page", path, "error", err)
 				} else {
