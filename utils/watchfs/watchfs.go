@@ -22,6 +22,18 @@ func WatchFS(dir string, idx *index.Index) (*fs.FS, error) {
 	if err := watcher.Add(dir); err != nil {
 		return nil, err
 	}
+	// Subdirectories
+	err = fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() && path != "." {
+			if err := watcher.Add(dir + "/" + path); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		slog.Warn("Error walking directory", "error", err)
+	}
 
 	trigger := make(chan struct{})
 
