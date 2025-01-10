@@ -43,7 +43,7 @@ const (
 )
 
 type Index struct {
-	Entries    []IndexEntry `json:"entries"`
+	entries    []IndexEntry
 	rootPath   string
 	name       string
 	lookup     map[string]*IndexEntry
@@ -112,7 +112,7 @@ func (i *Index) AddEntry(e IndexEntry) error {
 	e.Path = i.rootPath + e.Path
 	i.mtx.Lock()
 	defer i.mtx.Unlock()
-	i.Entries = append(i.Entries, e)
+	i.entries = append(i.entries, e)
 	i.lookup[e.Id] = &e
 	i.slugLookup[e.Slug] = &e
 	return nil
@@ -128,9 +128,9 @@ func (i *Index) UpdateEntry(e IndexEntry) error {
 	e.Path = i.rootPath + e.Path
 	i.mtx.Lock()
 	defer i.mtx.Unlock()
-	for j, entry := range i.Entries {
+	for j, entry := range i.entries {
 		if entry.Id == e.Id {
-			i.Entries[j] = e
+			i.entries[j] = e
 			i.lookup[e.Id] = &e
 			i.slugLookup[e.Slug] = &e
 			break
@@ -145,10 +145,10 @@ func (i *Index) DeleteEntry(id string) error {
 	}
 	i.mtx.Lock()
 	defer i.mtx.Unlock()
-	for j, entry := range i.Entries {
+	for j, entry := range i.entries {
 		if entry.Id == id {
 			slog.Info("Deleting entry", "id", id)
-			i.Entries = slices.Delete(i.Entries, j, j+1)
+			i.entries = slices.Delete(i.entries, j, j+1)
 			delete(i.lookup, id)
 			delete(i.slugLookup, entry.Slug)
 			break
@@ -176,7 +176,7 @@ func (i *Index) Unlock() {
 func (i *Index) GetEntries() []IndexEntry {
 	i.mtx.RLock()
 	defer i.mtx.RUnlock()
-	return i.Entries
+	return i.entries
 }
 
 func (i *Index) GetEntry(id string) *IndexEntry {
@@ -205,27 +205,27 @@ func (i *Index) Sort() {
 func (i *Index) SortBySortOrder() {
 	i.mtx.Lock()
 	defer i.mtx.Unlock()
-	if i.Entries == nil {
+	if i.entries == nil {
 		return
 	}
-	sort.Slice(i.Entries, func(j, k int) bool {
-		return i.Entries[j].SortOrder < i.Entries[k].SortOrder
+	sort.Slice(i.entries, func(j, k int) bool {
+		return i.entries[j].SortOrder < i.entries[k].SortOrder
 	})
 }
 
 func (i *Index) SortByDate() {
 	i.mtx.Lock()
 	defer i.mtx.Unlock()
-	if i.Entries == nil {
+	if i.entries == nil {
 		return
 	}
-	sort.Slice(i.Entries, func(j, k int) bool {
-		return i.Entries[k].Date.Before(i.Entries[j].Date)
+	sort.Slice(i.entries, func(j, k int) bool {
+		return i.entries[k].Date.Before(i.entries[j].Date)
 	})
 }
 
 func (i *Index) Count() int {
 	i.mtx.RLock()
 	defer i.mtx.RUnlock()
-	return len(i.Entries)
+	return len(i.entries)
 }

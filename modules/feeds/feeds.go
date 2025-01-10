@@ -41,8 +41,6 @@ func InitFeeds(i *index.Index) *Feeds {
 }
 
 func getFeedFromIndex(index *index.Index) *gorillafeeds.Feed {
-	index.RLock()
-	defer index.RUnlock()
 	config := config.Config
 	var author *gorillafeeds.Author
 	if config.DisplayAuthorInFeed {
@@ -55,24 +53,24 @@ func getFeedFromIndex(index *index.Index) *gorillafeeds.Feed {
 		Link:        &gorillafeeds.Link{Href: config.BaseURL},
 		Description: config.Description,
 		Author:      author,
-		Created:     index.Entries[0].Date,
+		Created:     index.GetEntries()[0].Date,
 	}
 
 	feedItems := []*gorillafeeds.Item{}
-	for _, entry := range index.Entries {
+	for i, _ := range index.GetEntries() {
 		var summary string
-		if entry.Summary != nil {
-			summary = string(*entry.Summary)
+		if index.GetEntries()[i].Summary != nil {
+			summary = string(*index.GetEntries()[i].Summary)
 		} else {
 			summary = "Description not available"
 		}
 		baseURL := strings.TrimSuffix(config.BaseURL, "/")
 
 		feedItems = append(feedItems, &gorillafeeds.Item{
-			Title:       entry.Title,
-			Link:        &gorillafeeds.Link{Href: baseURL + entry.Path},
-			Description: entry.Description,
-			Created:     entry.Date,
+			Title:       index.GetEntries()[i].Title,
+			Link:        &gorillafeeds.Link{Href: baseURL + index.GetEntries()[i].Path},
+			Description: index.GetEntries()[i].Description,
+			Created:     index.GetEntries()[i].Date,
 			Content:     summary,
 		})
 	}

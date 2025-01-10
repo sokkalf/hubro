@@ -132,18 +132,18 @@ func (h *Hubro) initTemplates(layoutDir fs.FS, templateDir fs.FS, modTimeCSS int
 			return date.Format("2006-01-02")
 		},
 		"listPages": func(i string, filterTag string) []index.IndexEntry {
-			entries := index.GetIndex(i)
-			if entries == nil {
+			idx := index.GetIndex(i)
+			if idx == nil {
 				return []index.IndexEntry{}
 			} else {
 				if filterTag == "" {
-					return entries.Entries
+					return idx.GetEntries()
 				} else {
 					var filteredEntries []index.IndexEntry
 
 					filteredEntries = utils.Filter(func(entry index.IndexEntry) bool {
 						return slices.Contains(entry.Tags, filterTag)
-					}, entries.Entries)
+					}, idx.GetEntries())
 
 					return filteredEntries
 				}
