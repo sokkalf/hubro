@@ -279,7 +279,6 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 	opts.Index.Sort()
 	mux.HandleFunc("/", handler(h, opts.Index))
 	slog.Info("Registered pages", "duration", time.Since(start))
-	slog.Debug("Scanning for new pages every 30 seconds", "index", opts.Index.GetName())
 
 	go func() {
 		msgChan := opts.Index.MsgBroker.Subscribe()
