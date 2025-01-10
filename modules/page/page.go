@@ -38,14 +38,20 @@ func slugify(s string) string {
 	return slug.Make(s)
 }
 
+func getOrDefault[T any](m map[string]interface{}, key string, defaultVal T) T {
+	raw, ok := m[key]
+	if !ok {
+		return defaultVal
+	}
+	val, ok := raw.(T)
+	if !ok {
+		return defaultVal
+	}
+	delete(m, key)
+	return val
+}
+
 func parse(prefix string, md goldmark.Markdown, path string, opts PageOptions, isUpdate bool) error {
-	var title string
-	var description string
-	var author string
-	var visible bool = true
-	var hideAuthor bool = false
-	var hideTitle bool = false
-	var sortOrder int
 	var tags []string
 	var summary *template.HTML
 	var body *template.HTML
@@ -72,38 +78,14 @@ func parse(prefix string, md goldmark.Markdown, path string, opts PageOptions, i
 		return err
 	}
 	metaData := meta.Get(context)
-	if t, ok := metaData["title"]; ok {
-		title = t.(string)
-		delete(metaData, "title")
-	} else {
-		title = name
-	}
-	if d, ok := metaData["description"]; ok {
-		description = d.(string)
-		delete(metaData, "description")
-	}
-	if a, ok := metaData["author"]; ok {
-		author = a.(string)
-		delete(metaData, "author")
-	}
-	if v, ok := metaData["visible"]; ok {
-		visible = v.(bool)
-		delete(metaData, "visible")
-	}
-	if s, ok := metaData["sortOrder"]; ok {
-		sortOrder = s.(int)
-		delete(metaData, "sortOrder")
-	} else {
-		sortOrder = 0
-	}
-	if h, ok := metaData["hideAuthor"]; ok {
-		hideAuthor = h.(bool)
-		delete(metaData, "hideAuthor")
-	}
-	if h, ok := metaData["hideTitle"]; ok {
-		hideTitle = h.(bool)
-		delete(metaData, "hideTitle")
-	}
+	title := getOrDefault(metaData, "title", name)
+	description := getOrDefault(metaData, "description", "")
+	author := getOrDefault(metaData, "author", "")
+	visible := getOrDefault(metaData, "visible", true)
+	sortOrder := getOrDefault(metaData, "sortOrder", 0)
+	hideAuthor := getOrDefault(metaData, "hideAuthor", false)
+	hideTitle := getOrDefault(metaData, "hideTitle", false)
+
 	if t, ok := metaData["tags"]; ok {
 		tags = make([]string, 0)
 		for _, tag := range t.([]interface{}) {
