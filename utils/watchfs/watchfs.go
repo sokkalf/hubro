@@ -45,11 +45,13 @@ func WatchFS(dir string, idx *index.Index) (*fs.FS, error) {
 			case event := <-watcher.Events:
 				if event.Op&(fsnotify.Write|fsnotify.Create|fsnotify.Remove) != 0 {
 					fileInfo, err := os.Stat(event.Name)
-					if err != nil {
+					if err != nil && !event.Has(fsnotify.Remove) {
 						slog.Error("Error getting file info", "error", err)
 						continue
+					} else if err != nil && event.Has(fsnotify.Remove) {
+						// If the file was removed, we don't need to do anything
 					}
-					if fileInfo.IsDir() {
+					if err == nil && fileInfo.IsDir() {
 						slog.Info("Watching new directory", "directory", event.Name)
 						watcher.Add(event.Name)
 					}
