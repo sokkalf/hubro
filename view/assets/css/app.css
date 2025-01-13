@@ -2,7 +2,8 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 @import "./markdown.css";
-@import "../vendor/highlight/github.min.css";
+@import "../vendor/highlight/github.min.css" screen;
+@import "../vendor/highlight/github-dark.min.css" screen and (prefers-color-scheme: dark);
 
 /* Add your custom styles here */
 .topnav {
@@ -29,8 +30,8 @@
 
 .topnav-right {
         float: right;
-        padding: 10px 16px 14px 16px;
         margin-top: 0;
+		display: inline-block;
 }
 
 .topnav-right p {
