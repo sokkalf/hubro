@@ -2,8 +2,8 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 @import "./markdown.css";
-@import "../vendor/highlight/github.min.css" screen;
-@import "../vendor/highlight/github-dark.min.css" screen and (prefers-color-scheme: dark);
+@import "../vendor/highlight/github.min.css";
+@import "../vendor/highlight/github-dark.min.css";
 
 /* Add your custom styles here */
 .topnav {

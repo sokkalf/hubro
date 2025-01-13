@@ -58,6 +58,7 @@ function boostLocalLinks() {
 // Expose toggleTheme to the window for easy hooking (e.g., button onclick)
 window.toggleTheme = toggleTheme;
 window.removeTheme = removeTheme;
+window.initTheme = initTheme;
 
 window.HubroInit = function() {
 	initTheme();

@@ -39,51 +39,9 @@ export function toggleTheme() {
   // Save the new theme
   localStorage.setItem("theme", newTheme);
 
-  // Flip all prefers-color-scheme rules
-  switchThemeRules();
-
   // Update any UI elements (icons, etc.)
   updateBodyClass(newTheme);
   updateThemeIcons(newTheme);
-}
-
-/**
- * Switch the prefers-color-scheme references in all loaded stylesheets.
- * This effectively flips "light" to "dark" or "dark" to "light".
- */
-function switchThemeRules() {
-  for (let sheetIndex = 0; sheetIndex < document.styleSheets.length; sheetIndex++) {
-    const styleSheet = document.styleSheets[sheetIndex];
-
-    try {
-      for (
-        let ruleIndex = 0;
-        ruleIndex < styleSheet.cssRules.length;
-        ruleIndex++
-      ) {
-        const rule = styleSheet.cssRules[ruleIndex];
-        // Check if the rule is a @media rule that includes "prefers-color-scheme"
-        if (rule?.media && rule.media.mediaText.includes("prefers-color-scheme")) {
-          const oldMedia = rule.media.mediaText;
-          let newMedia = oldMedia;
-
-          if (oldMedia.includes("light")) {
-            newMedia = oldMedia.replace("light", "dark");
-          } else if (oldMedia.includes("dark")) {
-            newMedia = oldMedia.replace("dark", "light");
-          }
-
-          rule.media.deleteMedium(oldMedia);
-          rule.media.appendMedium(newMedia);
-        }
-      }
-    } catch (e) {
-      console.warn(
-        `Stylesheet ${styleSheet.href} threw an error while toggling theme: `,
-        e
-      );
-    }
-  }
 }
 
 /**
@@ -103,9 +61,12 @@ function updateThemeIcons(theme) {
 
 function updateBodyClass(theme) {
 	body = document.querySelector("body");
+	html = document.querySelector("html");
 	body.classList.remove("dark");
 	body.classList.remove("light");
 	body.classList.add(theme);
+	html.removeAttribute("data-theme");
+	html.setAttribute("data-theme", theme);
 }
 
 /**
@@ -115,10 +76,6 @@ function updateBodyClass(theme) {
 export function removeTheme() {
   const storedTheme = getStoredTheme();
   if (storedTheme) {
-    const systemTheme = getSystemTheme();
-    if (systemTheme !== storedTheme) {
-      switchThemeRules();
-    }
     localStorage.removeItem("theme");
   }
 }
