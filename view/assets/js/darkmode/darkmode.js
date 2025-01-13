@@ -51,11 +51,11 @@ export function toggleTheme() {
  */
 function updateThemeIcons(theme) {
   if (theme === "dark") {
-    document.getElementById("icon-moon").classList.remove("hidden");
-    document.getElementById("icon-sun").classList.add("hidden");
+    document.getElementById("icon-moon").classList.remove("bw");
+    document.getElementById("icon-sun").classList.add("bw");
   } else {
-    document.getElementById("icon-moon").classList.add("hidden");
-    document.getElementById("icon-sun").classList.remove("hidden");
+    document.getElementById("icon-moon").classList.add("bw");
+    document.getElementById("icon-sun").classList.remove("bw");
   }
 }
 
