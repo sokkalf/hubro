@@ -1,4 +1,4 @@
-<div class="bg-indigo-950 topnav z-1">
+<div class="dark:bg-slate-900 bg-indigo-950 topnav z-1">
 	<a data-hx-boost="true" href="/">{{ appTitle }}</a>
 	{{ range listPages "pages" "" }}
 		{{ if not .Visible }}
@@ -7,7 +7,12 @@
 		<a data-hx-boost="true" href="{{ rootPath }}{{ .Path }}">{{ .Title }}</a>
 	{{ end }}
 	<!-- Stuff on the right side -->
-	<div class="h-6 topnav-right">
-		<p class="rounded-full bg-blue-200 px-2 py-1">{{ getConfig.Version }}</p>
+	<div class="h-6 pr-5 pt-2 topnav-right" title="Toggle dark mode">
+		<span id="icon-sun" class="hidden text-2xl">🌞</span>
+		<span id="icon-moon" class="hidden text-2xl">🌙</span>
+		<label for="dark-mode-toggle" class="switch">
+			<input type="checkbox" id="dark-mode-toggle" onclick="toggleTheme()">
+			<span class="slider round"></span>
+		</label>
 	</div>
 </div>

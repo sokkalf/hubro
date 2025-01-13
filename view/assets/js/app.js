@@ -1,5 +1,6 @@
 import htmx from "../vendor/htmx/htmx.min.js";
 import hljs from "../vendor/highlight/highlight.min.js";
+import { removeTheme, toggleTheme, initTheme } from "./darkmode/darkmode.js";
 
 window.hljs = hljs
 
@@ -54,7 +55,12 @@ function boostLocalLinks() {
 	});
 }
 
+// Expose toggleTheme to the window for easy hooking (e.g., button onclick)
+window.toggleTheme = toggleTheme;
+window.removeTheme = removeTheme;
+
 window.HubroInit = function() {
+	initTheme();
 	highlightNewCodeBlocks();
 	boostLocalLinks();
 	document.addEventListener('alpine:init', () => {
@@ -71,6 +77,7 @@ window.HubroInit = function() {
 
 	// Add a copy button to code blocks
 	document.addEventListener('htmx:load', function() {
+	  initTheme();
 	  const codeBlocks = document.querySelectorAll("pre > code:not(.copy-button-added)");
 
 	  codeBlocks.forEach((codeEl) => {

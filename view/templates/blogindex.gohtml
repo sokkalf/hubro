@@ -4,15 +4,15 @@
 	{{ if not .Visible }}
 		{{ continue }}
 	{{ end }}
-	<div class="mx-auto max-w-full rounded-lg bg-white p-6 shadow">
+	<div class="mx-auto max-w-full rounded-lg bg-white dark:bg-slate-900 p-6 shadow">
 		{{ if not .HideTitle }}
-		<h1 class="text-3xl font-semibold">
+		<h1 class="text-3xl font-semibold text-black dark:text-white">
 			<a data-hx-boost="true" href="{{ rootPath }}{{ .Path }}">{{ .Title }}</a>
 		</h1>
 		{{ end }}
 		{{ template "partials/_tags" . }}
 		<div class="py-2 author">
-			<p class="text-sm text-gray-500">
+			<p class="text-sm text-gray-500 dark:text-gray-300">
 			{{ if not .HideAuthor }}
 				{{ if .Author }}
 				by {{ .Author }}{{ if not .Date.IsZero }}, <span data-x-timeago>{{ .Date | format_date }}</span>{{ end }}
@@ -25,7 +25,7 @@
 		</div>
 		{{ if not (equalTemplates .Summary .Body) }}
 		<div class="text-right">
-			<a data-hx-boost="true" href="{{ rootPath }}{{ .Path }}" class="pr-5 text-indigo-800">Read more</a>
+			<a data-hx-boost="true" href="{{ rootPath }}{{ .Path }}" class="pr-5 dark:text-indigo-300 text-indigo-800">Read more</a>
 		</div>
 		{{ end }}
 	</div>

@@ -1,4 +1,4 @@
-<div class="mx-auto max-w-full rounded-lg bg-white p-6 shadow">
+<div class="mx-auto max-w-full rounded-lg bg-white p-6 shadow dark:bg-slate-900">
 	{{ if not .HideTitle }}
 	<h1 class="text-3xl font-semibold">
 		{{.Title}}
@@ -7,7 +7,7 @@
 	{{ end }}
 	{{ if not .HideAuthor }}
 	<div class="py-2 author">
-		<p class="text-sm text-gray-500">
+		<p class="text-sm text-gray-500 dark:text-gray-300">
 			{{ if .Author }}
 				by {{ .Author }}{{ if not .Date.IsZero }}, <span data-x-timeago>{{ .Date | format_date }}</span>{{ end }}
 			{{ end }}
