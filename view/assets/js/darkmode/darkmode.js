@@ -43,6 +43,7 @@ export function toggleTheme() {
   switchThemeRules();
 
   // Update any UI elements (icons, etc.)
+  updateBodyClass(newTheme);
   updateThemeIcons(newTheme);
 }
 
@@ -100,6 +101,13 @@ function updateThemeIcons(theme) {
   }
 }
 
+function updateBodyClass(theme) {
+	body = document.querySelector("body");
+	body.classList.remove("dark");
+	body.classList.remove("light");
+	body.classList.add(theme);
+}
+
 /**
  * Remove the user’s saved theme from local storage. If the user’s theme
  * was different from the system theme, flip the stylesheet rules back.
@@ -121,26 +129,9 @@ export function removeTheme() {
  * the system theme, flip the rules so the user’s theme stays consistent.
  */
 export function initTheme() {
-	const storedTheme = getStoredTheme();
-	if (storedTheme && storedTheme !== getSystemTheme()) {
-		switchThemeRules();
-	}
 	// Update icons/UI to reflect whichever theme is active
+	updateBodyClass(getActiveTheme());
 	updateThemeIcons(getActiveTheme());
 	checkBox = document.getElementById("dark-mode-toggle");
 	checkBox.checked = getActiveTheme() === "dark";
 }
-
-/**
- * Listen for system-level theme changes. If the user has manually chosen
- * a theme (i.e., localStorage has one), we flip the rules each time the
- * system changes, effectively overriding the system preference.
- */
-window
-  .matchMedia("(prefers-color-scheme: dark)")
-  .addEventListener("change", (event) => {
-    if (getStoredTheme()) {
-      // Switch the stylesheet rules again to stay in user-chosen mode
-      switchThemeRules();
-    }
-  });
