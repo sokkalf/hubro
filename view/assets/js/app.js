@@ -148,11 +148,11 @@ function switchThemeRules() {
  */
 function updateThemeIcons(theme) {
   if (theme === "dark") {
-    document.getElementById("icon-sun").classList.remove("hidden");
-    document.getElementById("icon-moon").classList.add("hidden");
-  } else {
-    document.getElementById("icon-sun").classList.add("hidden");
     document.getElementById("icon-moon").classList.remove("hidden");
+    document.getElementById("icon-sun").classList.add("hidden");
+  } else {
+    document.getElementById("icon-moon").classList.add("hidden");
+    document.getElementById("icon-sun").classList.remove("hidden");
   }
 }
 
@@ -201,6 +201,8 @@ window.HubroInit = function() {
 	}
 	// Update icons/UI to reflect whichever theme is active
 	updateThemeIcons(getActiveTheme());
+	checkBox = document.getElementById("dark-mode-toggle");
+	checkBox.checked = getActiveTheme() === "dark";
 
 	highlightNewCodeBlocks();
 	boostLocalLinks();
