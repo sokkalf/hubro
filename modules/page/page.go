@@ -79,6 +79,7 @@ func parse(prefix string, md goldmark.Markdown, path string, opts PageOptions, i
 	}
 	metaData := meta.Get(context)
 	title := getOrDefault(metaData, "title", name)
+	shortTitle := getOrDefault(metaData, "shortTitle", title)
 	description := getOrDefault(metaData, "description", "")
 	author := getOrDefault(metaData, "author", "")
 	visible := getOrDefault(metaData, "visible", true)
@@ -121,6 +122,7 @@ func parse(prefix string, md goldmark.Markdown, path string, opts PageOptions, i
 		Id:          path,
 		Slug:        slug,
 		Title:       title,
+		ShortTitle:  shortTitle,
 		Description: description,
 		Author:      author,
 		Visible:     visible,

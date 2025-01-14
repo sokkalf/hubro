@@ -20,6 +20,7 @@ type IndexEntry struct {
 	Id          string                 `json:"id"`
 	Slug        string                 `json:"slug"`
 	Title       string                 `json:"title"`
+	ShortTitle  string                 `json:"shortTitle"`
 	Author      string                 `json:"author"`
 	Path        string                 `json:"path"`
 	Date        time.Time              `json:"date"`
