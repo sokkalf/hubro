@@ -166,3 +166,7 @@ input:checked + .slider:before {
 .bw {
   filter: grayscale(100%);
 }
+
+.tag-cloud span:hover {
+	@apply dark:text-indigo-300 text-indigo-200;
+}
