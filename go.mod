@@ -8,7 +8,7 @@ require (
 	github.com/gorilla/feeds v1.2.0
 	github.com/gosimple/slug v1.15.0
 	github.com/lmittmann/tint v1.0.6
-	github.com/samber/slog-graylog/v2 v2.7.2
+	github.com/samber/slog-graylog/v2 v2.7.3
 	github.com/samber/slog-multi v1.3.3
 	github.com/yuin/goldmark v1.7.8
 	github.com/yuin/goldmark-meta v1.1.0
