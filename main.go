@@ -13,6 +13,7 @@ import (
 	"github.com/sokkalf/hubro/helpers"
 	"github.com/sokkalf/hubro/index"
 	"github.com/sokkalf/hubro/logging"
+	"github.com/sokkalf/hubro/modules/admin"
 	"github.com/sokkalf/hubro/modules/feeds"
 	"github.com/sokkalf/hubro/modules/healthcheck"
 	"github.com/sokkalf/hubro/modules/page"
@@ -84,6 +85,7 @@ func main() {
 	}()
 	wg.Wait()
 	h.AddModule("/api/pages", pagesAPI.Register, []*index.Index{pageIndex, blogIndex})
+	h.AddModule("/admin", admin.Register, nil)
 
 	if config.Config.FeedsEnabled {
 		if blogIndex.Count() > 0 {
