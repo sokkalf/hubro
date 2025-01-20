@@ -1,8 +1,11 @@
 package logging
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -18,6 +21,15 @@ type CustomResponseWriter struct {
 
 func ExtendResponseWriter(w http.ResponseWriter) *CustomResponseWriter {
 	return &CustomResponseWriter{w, 0}
+}
+
+// this is needed for WebSockets
+func (w *CustomResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+    hj, ok := w.responseWriter.(http.Hijacker)
+    if !ok {
+        return nil, nil, errors.New("underlying ResponseWriter does not implement http.Hijacker")
+    }
+    return hj.Hijack()
 }
 
 func (w *CustomResponseWriter) Write(b []byte) (int, error) {
