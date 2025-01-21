@@ -55,6 +55,17 @@ function boostLocalLinks() {
 	});
 }
 
+function initWS() {
+	const ws = new WebSocket('ws://' + window.location.host + '/admin/ws');
+	window.ws = ws;
+	ws.onmessage = function(event) {
+		const data = JSON.parse(event.data);
+		if (data.type === 'reload') {
+			window.location.reload();
+		}
+	};
+}
+
 // Expose toggleTheme to the window for easy hooking (e.g., button onclick)
 window.toggleTheme = toggleTheme;
 window.removeTheme = removeTheme;
@@ -126,4 +137,8 @@ window.HubroInit = function() {
 		});
 	  });
 	});
+}
+
+window.AdminInit = function() {
+	initWS();
 }
