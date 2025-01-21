@@ -12,7 +12,7 @@ import (
 func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
 	slog.Info("Registering admin module")
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello, World!"))
+		h.RenderWithLayout(w, r, "admin/app", "admin/index", nil)
 	}))
 	mux.Handle("/ws", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		conn, err := websocket.Accept(w, r, nil)
