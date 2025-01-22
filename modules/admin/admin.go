@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/coder/websocket"
+	"github.com/sokkalf/hubro/index"
 	"github.com/sokkalf/hubro/server"
 )
 
@@ -23,8 +24,14 @@ func basicAuth(h http.HandlerFunc) http.HandlerFunc {
 
 func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
 	slog.Info("Registering admin module")
+
+	indices := make([]*index.Index, 0)
+	for _, i := range index.GetIndices() {
+		indices = append(indices, i)
+	}
+
 	mux.Handle("/", basicAuth(func(w http.ResponseWriter, r *http.Request) {
-		h.RenderWithLayout(w, r, "admin/app", "admin/index", nil)
+		h.RenderWithLayout(w, r, "admin/app", "admin/index", indices)
 	}))
 	mux.Handle("/ws", basicAuth(func(w http.ResponseWriter, r *http.Request) {
 		conn, err := websocket.Accept(w, r, nil)
@@ -44,7 +51,7 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 			}
 
 			slog.Debug("received message", "message", string(b), "type", t)
-			conn.Write(ctx, t, []byte("Hello, World!"))
+			conn.Write(ctx, t, []byte("received: "+string(b)))
 		}
 	}))
 }

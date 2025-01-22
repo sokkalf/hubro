@@ -92,6 +92,10 @@ func GetIndex(name string) *Index {
 	return nil
 }
 
+func GetIndices() Indices {
+	return indices
+}
+
 func (i *Index) GetName() string {
 	return i.name
 }
