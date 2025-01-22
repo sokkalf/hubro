@@ -71,17 +71,19 @@ func main() {
 	if err != nil {
 		slog.Error("Error watching blog directory", "error", err)
 	}
+	pageIndex.FilesDir = *pagesDir
+	blogIndex.FilesDir = *blogDir
 	helpers.TagCloudInit(pageIndex)
 	helpers.TagCloudInit(blogIndex)
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 	go func () {
 		defer wg.Done()
-		h.AddModule("/page", page.Register, page.PageOptions{FilesDir: *pagesDir, Index: pageIndex})
+		h.AddModule("/page", page.Register, page.PageOptions{Index: pageIndex})
 	}()
 	go func () {
 		defer wg.Done()
-		h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: *blogDir, Index: blogIndex})
+		h.AddModule("/blog", page.Register, page.PageOptions{Index: blogIndex})
 	}()
 	wg.Wait()
 	h.AddModule("/api/pages", pagesAPI.Register, []*index.Index{pageIndex, blogIndex})

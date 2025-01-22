@@ -3,6 +3,7 @@ package index
 import (
 	"fmt"
 	"html/template"
+	"io/fs"
 	"log/slog"
 	"slices"
 	"sort"
@@ -52,6 +53,7 @@ type Index struct {
 	mtx        sync.RWMutex
 	sortMode   int
 	MsgBroker  *broker.Broker[Message]
+	FilesDir   fs.FS
 }
 
 const (

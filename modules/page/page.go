@@ -23,7 +23,6 @@ import (
 )
 
 type PageOptions struct {
-	FilesDir fs.FS
 	Index    *index.Index
 }
 type indexedPage struct {
@@ -67,7 +66,7 @@ func parse(prefix string, md goldmark.Markdown, path string, opts PageOptions, i
 
 	start := time.Now()
 	name := strings.TrimSuffix(path, ".md")
-	content, err := fs.ReadFile(opts.FilesDir, path)
+	content, err := fs.ReadFile(opts.Index.FilesDir, path)
 	if err != nil {
 		slog.Error("Error reading page file", "page", path, "error", err)
 		return err
@@ -167,7 +166,7 @@ func scanMarkdownFiles(prefix string, opts PageOptions) (filesScanned, numNew, n
 		goldmark.WithRendererOptions(html.WithUnsafe()),
 	)
 	filesScannedList := make([]string, 0)
-	fs.WalkDir(opts.FilesDir, ".", func(path string, d fs.DirEntry, err error) error {
+	fs.WalkDir(opts.Index.FilesDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".md") {
 			fi, err := d.Info()
 			if err != nil {
