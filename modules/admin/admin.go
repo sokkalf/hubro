@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"io/fs"
 	"log/slog"
 	"net/http"
 
@@ -32,6 +33,41 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 
 	mux.Handle("/", basicAuth(func(w http.ResponseWriter, r *http.Request) {
 		h.RenderWithLayout(w, r, "admin/app", "admin/index", indices)
+	}))
+	mux.Handle("/edit", basicAuth(func(w http.ResponseWriter, r *http.Request) {
+		slug := r.URL.Query().Get("p")
+		idx := r.URL.Query().Get("idx")
+		if idx == "" {
+			msg := "Index not found"
+			h.ErrorHandler(w, r, http.StatusNotFound, &msg)
+			return
+		}
+		i := index.GetIndex(idx)
+		if i == nil {
+			msg := "Index not found"
+			h.ErrorHandler(w, r, http.StatusNotFound, &msg)
+			return
+		}
+		entry := i.GetEntryBySlug(slug)
+		if entry == nil {
+			msg := "Entry not found"
+			h.ErrorHandler(w, r, http.StatusNotFound, &msg)
+			return
+		}
+		fileContent, err := fs.ReadFile(i.FilesDir, entry.FileName)
+		if err != nil {
+			msg := "Error reading file"
+			slog.Error("Error reading file", "error", err)
+			h.ErrorHandler(w, r, http.StatusInternalServerError, &msg)
+			return
+		}
+
+		data := struct {
+			Entry *index.IndexEntry
+			RawContent string
+		}{entry, string(fileContent)}
+
+		h.RenderWithLayout(w, r, "admin/app", "admin/edit", data)
 	}))
 	mux.Handle("/ws", basicAuth(func(w http.ResponseWriter, r *http.Request) {
 		conn, err := websocket.Accept(w, r, nil)
