@@ -48,13 +48,13 @@ func TestAddEntry(t *testing.T) {
 
 	idx.AddEntry(entry)
 
-	if len(idx.Entries) != 1 {
-		t.Fatalf("Expected 1 entry in index, got %d", len(idx.Entries))
+	if len(idx.entries) != 1 {
+		t.Fatalf("Expected 1 entry in index, got %d", len(idx.entries))
 	}
 
 	// Check that the path was prefixed with rootPath
-	if idx.Entries[0].Path != "/content/page1.html" {
-		t.Errorf("Expected path to be /content/page1.html, got %s", idx.Entries[0].Path)
+	if idx.entries[0].Path != "/content/page1.html" {
+		t.Errorf("Expected path to be /content/page1.html, got %s", idx.entries[0].Path)
 	}
 
 	// Check lookup
@@ -98,7 +98,7 @@ func TestSortBySortOrder(t *testing.T) {
 
 	idx.SortBySortOrder()
 
-	ids := []string{idx.Entries[0].Id, idx.Entries[1].Id, idx.Entries[2].Id}
+	ids := []string{idx.entries[0].Id, idx.entries[1].Id, idx.entries[2].Id}
 	expected := []string{"1", "2", "3"}
 	for i, want := range expected {
 		if ids[i] != want {
@@ -125,14 +125,14 @@ func TestSortByDate(t *testing.T) {
 	// i.e., i.Entries[0] has the largest Date
 	//   i.Entries[last] has the smallest Date
 
-	if idx.Entries[0].Id != "newest" {
-		t.Errorf("Expected 'newest' entry first, got %s", idx.Entries[0].Id)
+	if idx.entries[0].Id != "newest" {
+		t.Errorf("Expected 'newest' entry first, got %s", idx.entries[0].Id)
 	}
-	if idx.Entries[1].Id != "middle" {
-		t.Errorf("Expected 'middle' entry second, got %s", idx.Entries[1].Id)
+	if idx.entries[1].Id != "middle" {
+		t.Errorf("Expected 'middle' entry second, got %s", idx.entries[1].Id)
 	}
-	if idx.Entries[2].Id != "oldest" {
-		t.Errorf("Expected 'oldest' entry third, got %s", idx.Entries[2].Id)
+	if idx.entries[2].Id != "oldest" {
+		t.Errorf("Expected 'oldest' entry third, got %s", idx.entries[2].Id)
 	}
 }
 
