@@ -55,12 +55,18 @@ function boostLocalLinks() {
 	});
 }
 
+function updateWSStatus(st) {
+	document.querySelector('#ws-status').innerText = st;
+}
+
 function initWS() {
 	const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 	const ws = new WebSocket(scheme + '://' + window.location.host + '/admin/ws');
 	window.ws = ws;
+
 	ws.onopen = function() {
 		console.log('WebSocket is open');
+		updateWSStatus('🟢');
 	}
 	ws.onmessage = function(event) {
 		const data = JSON.parse(event.data);
@@ -74,11 +80,13 @@ function initWS() {
 	};
 	ws.onclose = function() {
     	console.log('WebSocket is closed. Reconnecting in 5 seconds...');
+		updateWSStatus('🔴');
     	setTimeout(function() {
         	initWS(); // Attempt to reconnect
 		}, 5000);
     };
 	ws.onerror = function(err) {
+		updateWSStatus('🔴');
 		console.error('WebSocket error observed:', err);
 	}
 }
@@ -90,6 +98,7 @@ window.initTheme = initTheme;
 
 window.HubroInit = function() {
 	initTheme();
+	updateWSStatus('');
 	highlightNewCodeBlocks();
 	boostLocalLinks();
 	document.addEventListener('alpine:init', () => {
