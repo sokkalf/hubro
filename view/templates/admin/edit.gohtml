@@ -1,5 +1,63 @@
 <div class="mx-auto max-w-full rounded-lg bg-white p-6 shadow dark:bg-slate-900 text-gray-500 dark:text-gray-300">
-	<h1 class="text-2xl">{{ .Entry.Title }}</h1>
-	<textarea id="editor" onkeydown="sendMarkdown();" class="w-full h-96 bg-slate-900 text-gray-200">{{ .RawContent }}</textarea>
-	<div class="w-full h-96 markdown-body" id="markdown-preview"></div>
+  <!-- Tabs -->
+  <div class="border-b border-gray-200 dark:border-slate-700 mb-4">
+    <ul class="flex text-sm font-medium">
+      <li>
+        <button
+          class="py-2 px-4 focus:outline-none"
+          onclick="showTab('editorTab')"
+          id="editorTabButton"
+        >
+          Editor
+        </button>
+      </li>
+      <li class="ml-2">
+        <button
+          class="py-2 px-4 focus:outline-none"
+          onclick="showTab('previewTab')"
+          id="previewTabButton"
+        >
+          Preview
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Editor Tab -->
+  <div id="editorTab">
+    <h1 class="text-2xl">{{ .Entry.Title }}</h1>
+    <textarea
+      id="editor"
+      onkeydown="sendMarkdown();"
+      class="w-full h-96 bg-slate-900 text-gray-200"
+    >{{ .RawContent }}</textarea>
+  </div>
+
+  <!-- Preview Tab (initially hidden) -->
+  <div id="previewTab" class="hidden">
+    <div class="w-full h-full markdown-body" id="markdown-preview"></div>
+  </div>
 </div>
+
+<script>
+  function showTab(tabId) {
+    // Hide both tabs
+    document.getElementById('editorTab').classList.add('hidden');
+    document.getElementById('previewTab').classList.add('hidden');
+
+    // Show the selected tab
+    document.getElementById(tabId).classList.remove('hidden');
+
+    // OPTIONAL: If you want to handle tab button states (active/inactive styles):
+    document.getElementById('editorTabButton').classList.remove('border-b-2', 'border-blue-500');
+    document.getElementById('previewTabButton').classList.remove('border-b-2', 'border-blue-500');
+    if (tabId === 'editorTab') {
+      document.getElementById('editorTabButton').classList.add('border-b-2', 'border-blue-500');
+    } else {
+      document.getElementById('previewTabButton').classList.add('border-b-2', 'border-blue-500');
+    }
+  }
+
+  // Optionally show Editor tab by default on page load:
+  showTab('editorTab');
+</script>
