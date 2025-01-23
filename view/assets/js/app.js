@@ -56,8 +56,12 @@ function boostLocalLinks() {
 }
 
 function initWS() {
-	const ws = new WebSocket('ws://' + window.location.host + '/admin/ws');
+	const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+	const ws = new WebSocket(scheme + '://' + window.location.host + '/admin/ws');
 	window.ws = ws;
+	ws.onopen = function() {
+		console.log('WebSocket is open');
+	}
 	ws.onmessage = function(event) {
 		const data = JSON.parse(event.data);
 		if (data.type === 'reload') {
@@ -68,6 +72,15 @@ function initWS() {
 			preview.innerHTML = data.content;
 		}
 	};
+	ws.onclose = function() {
+    	console.log('WebSocket is closed. Reconnecting in 5 seconds...');
+    	setTimeout(function() {
+        	initWS(); // Attempt to reconnect
+		}, 5000);
+    };
+	ws.onerror = function(err) {
+		console.error('WebSocket error observed:', err);
+	}
 }
 
 // Expose toggleTheme to the window for easy hooking (e.g., button onclick)
