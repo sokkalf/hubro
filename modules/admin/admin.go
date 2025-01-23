@@ -103,10 +103,8 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 			}
 			var msg map[string]interface{}
 			json.Unmarshal(b, &msg)
-			slog.Debug("received message", "type", t, "msgtype", msg["type"])
 			switch msg["type"] {
 			case "markdown":
-				slog.Debug("received markdown", "content", msg["content"])
 				rendered, err := renderMarkdown([]byte(msg["content"].(string)))
 				if err != nil {
 					slog.Error("Error rendering markdown", "error", err)
@@ -118,7 +116,7 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 				b, _ := json.Marshal(responses)
 				conn.Write(ctx, t, b)
 			default:
-				//slog.Debug("received message", "message", string(b), "type", t)
+				slog.Debug("received unknown message", "message", string(b), "type", t)
 			}
 		}
 	}))
