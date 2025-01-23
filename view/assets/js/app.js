@@ -63,6 +63,10 @@ function initWS() {
 		if (data.type === 'reload') {
 			window.location.reload();
 		}
+		if (data.type === 'markdown') {
+			const preview = document.querySelector('#markdown-preview');
+			preview.innerHTML = data.content;
+		}
 	};
 }
 
@@ -142,3 +146,20 @@ window.HubroInit = function() {
 window.AdminInit = function() {
 	initWS();
 }
+
+function debounce(fn, delay) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      fn.apply(this, args);
+    }, delay);
+  };
+}
+
+window.sendMarkdown = debounce(function() {
+	const ws = window.ws;
+	const editor = document.querySelector('#editor');
+	const markdown = editor.value;
+	ws.send(JSON.stringify({ type: 'markdown', content: markdown }));
+}, 300);
