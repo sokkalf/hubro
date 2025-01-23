@@ -13,6 +13,7 @@ import (
 	"github.com/sokkalf/hubro/modules/page"
 	"github.com/sokkalf/hubro/server"
 	"github.com/yuin/goldmark/parser"
+	meta "github.com/yuin/goldmark-meta"
 )
 
 func basicAuth(h http.HandlerFunc) http.HandlerFunc {
@@ -27,16 +28,18 @@ func basicAuth(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func renderMarkdown(markdown []byte) ([]byte, error) {
+func renderMarkdown(markdown []byte) ([]byte, map[string]interface{}, error) {
 	md := page.GetMarkdownParser()
 	var buf bytes.Buffer
 	context := parser.NewContext()
 
 	err := md.Convert(markdown, &buf, parser.WithContext(context))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return buf.Bytes(), nil
+
+	metaData := meta.Get(context)
+	return buf.Bytes(), metaData, nil
 }
 
 func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
@@ -105,7 +108,7 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 			json.Unmarshal(b, &msg)
 			switch msg["type"] {
 			case "markdown":
-				rendered, err := renderMarkdown([]byte(msg["content"].(string)))
+				rendered, metaData, err := renderMarkdown([]byte(msg["content"].(string)))
 				if err != nil {
 					slog.Error("Error rendering markdown", "error", err)
 				}
@@ -113,6 +116,7 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 				responses["type"] = "markdown"
 				responses["content"] = string(rendered)
 				responses["id"] = msg["id"]
+				responses["meta"] = metaData
 				b, _ := json.Marshal(responses)
 				conn.Write(ctx, t, b)
 			default:

@@ -59,6 +59,44 @@ function updateWSStatus(st) {
 	document.querySelector('#ws-status').innerText = st;
 }
 
+function renderPreview(data) {
+	const preview = document.querySelector('#markdown-preview');
+	preview.innerHTML = data.content;
+	author = data.meta.author;
+	title = data.meta.title;
+	date = data.meta.date;
+	if (!data.meta.hideAuthor) {
+		document.querySelector('#author-block').classList.remove('hidden');
+		document.querySelector('#author').innerText = author;
+		document.querySelector('#date').innerText = timeAgo(date);
+		document.querySelector('#date').setAttribute('title', date);
+	} else {
+		document.querySelector('#author-block').classList.add('hidden');
+	}
+	if (!data.meta.hideTitle) {
+		document.querySelector('#title').innerText = title;
+		document.querySelector('#title').classList.remove('hidden');
+	} else {
+		document.querySelector('#title').classList.add('hidden');
+	}
+	document.querySelector('#tags').innerHTML = '';
+	for (tag of data.meta.tags) {
+		var tagHtml = `<span class="mx-1 rounded-full bg-indigo-300 px-3 py-1 text-sm tag text-gray-800 dark:text-gray-800">` + tag + `</span>`
+		document.querySelector('#tags').innerHTML += tagHtml;
+	}
+}
+
+function handleWSMessage(event) {
+	const data = JSON.parse(event.data);
+	if (data.type === 'reload') {
+		window.location.reload();
+	}
+	if (data.type === 'markdown') {
+		renderPreview(data);
+		console.log(data.meta);
+	}
+}
+
 function initWS() {
 	const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 	const ws = new WebSocket(scheme + '://' + window.location.host + '/admin/ws');
@@ -68,16 +106,7 @@ function initWS() {
 		console.log('WebSocket is open');
 		updateWSStatus('🟢');
 	}
-	ws.onmessage = function(event) {
-		const data = JSON.parse(event.data);
-		if (data.type === 'reload') {
-			window.location.reload();
-		}
-		if (data.type === 'markdown') {
-			const preview = document.querySelector('#markdown-preview');
-			preview.innerHTML = data.content;
-		}
-	};
+	ws.onmessage = handleWSMessage;
 	ws.onclose = function() {
     	console.log('WebSocket is closed. Reconnecting in 5 seconds...');
 		updateWSStatus('🔴');

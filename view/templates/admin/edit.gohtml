@@ -37,6 +37,15 @@
 
   <!-- Preview Tab (initially hidden) -->
   <div id="previewTab" class="hidden">
+	<h1 id="title" class="hidden text-3xl font-semibold text-black dark:text-white">
+	</h1>
+	<div id="tags" class="flex flex-wrap gap-y-2 py-2 tags">
+	</div>
+	<div id="author-block" class="py-2 hidden">
+		<p class="text-sm text-gray-500 dark:text-gray-300">
+			by <span id="author"></span>, <span id="date"></span>
+		</p>
+	</div>
     <div class="h-full w-full markdown-body" id="markdown-preview"></div>
   </div>
 </div>
