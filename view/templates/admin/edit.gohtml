@@ -28,7 +28,7 @@
     <h1 class="text-2xl">{{ .Entry.Title }}</h1>
     <textarea
       id="editor"
-      class="w-full h-96 bg-slate-900 text-gray-200"
+      class="w-full h-full bg-slate-900 text-gray-200"
     >{{ .RawContent }}</textarea>
   </div>
 
@@ -60,6 +60,18 @@
   // Optionally show Editor tab by default on page load:
   showTab('editorTab');
   document.addEventListener('DOMContentLoaded', function() {
-	  sendMarkdown(document.getElementById('editor').value);
+	// initialize codemirror
+	var editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+		mode: 'markdown',
+		lineNumbers: true,
+		lineWrapping: true,
+		matchBrackets: true,
+		theme: 'midnight'
+	});
+	editor.setSize('100%', '100%');
+	editor.on('change', function() {
+		sendMarkdown(editor.getValue());
+	});
+	sendMarkdown(editor.getValue());
   });
 </script>

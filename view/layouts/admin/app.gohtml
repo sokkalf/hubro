@@ -24,17 +24,6 @@
 	<script>
 		window.HubroInit();
 		window.AdminInit();
-		// initialize codemirror
-		var editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
-			mode: 'markdown',
-			lineNumbers: true,
-			lineWrapping: true,
-			matchBrackets: true,
-			theme: 'midnight'
-		});
-		editor.on('change', function() {
-			sendMarkdown(editor.getValue());
-		});
 	</script>
 </body>
 </html>
