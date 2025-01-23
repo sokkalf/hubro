@@ -114,6 +114,7 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 				responses := make(map[string]interface{})
 				responses["type"] = "markdown"
 				responses["content"] = string(rendered)
+				responses["id"] = msg["id"]
 				b, _ := json.Marshal(responses)
 				conn.Write(ctx, t, b)
 			default:

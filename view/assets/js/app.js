@@ -157,8 +157,8 @@ function debounce(fn, delay) {
   };
 }
 
-window.sendMarkdown = debounce(function(value) {
+window.sendMarkdown = debounce(function(value, id) {
 	const ws = window.ws;
 	const markdown = value;
-	ws.send(JSON.stringify({ type: 'markdown', content: markdown }));
+	ws.send(JSON.stringify({ type: 'markdown', content: markdown, id: id }));
 }, 300);
