@@ -7,7 +7,13 @@
   <title>Admin - {{ appTitle }}</title>
   <script src="{{ appJS }}"></script>
   <script defer src="{{ vendor "alpine.js" }}"></script>
+  <script src="{{ vendorPath "codemirror/js/codemirror.js" }}"></script>
+  <script src="{{ vendorPath "codemirror/js/markdown.js" }}"></script>
+  <script src="{{ vendorPath "codemirror/js/matchbrackets.js" }}"></script>
+
   <link href="{{ appCSS }}" rel="stylesheet">
+  <link href="{{ vendorPath "codemirror/css/codemirror.css" }}" rel="stylesheet">
+  <link href="{{ vendorPath "codemirror/css/midnight.css" }}" rel="stylesheet">
 </head>
 <body class="bg-gray-100 dark:bg-slate-900">
 	{{ template "partials/_topbar" . }}
@@ -18,6 +24,17 @@
 	<script>
 		window.HubroInit();
 		window.AdminInit();
+		// initialize codemirror
+		var editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+			mode: 'markdown',
+			lineNumbers: true,
+			lineWrapping: true,
+			matchBrackets: true,
+			theme: 'midnight'
+		});
+		editor.on('change', function() {
+			sendMarkdown(editor.getValue());
+		});
 	</script>
 </body>
 </html>

@@ -157,9 +157,8 @@ function debounce(fn, delay) {
   };
 }
 
-window.sendMarkdown = debounce(function() {
+window.sendMarkdown = debounce(function(value) {
 	const ws = window.ws;
-	const editor = document.querySelector('#editor');
-	const markdown = editor.value;
+	const markdown = value;
 	ws.send(JSON.stringify({ type: 'markdown', content: markdown }));
 }, 300);

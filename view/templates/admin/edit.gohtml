@@ -28,7 +28,6 @@
     <h1 class="text-2xl">{{ .Entry.Title }}</h1>
     <textarea
       id="editor"
-      onkeydown="sendMarkdown();"
       class="w-full h-96 bg-slate-900 text-gray-200"
     >{{ .RawContent }}</textarea>
   </div>
@@ -60,4 +59,7 @@
 
   // Optionally show Editor tab by default on page load:
   showTab('editorTab');
+  document.addEventListener('DOMContentLoaded', function() {
+	  sendMarkdown(document.getElementById('editor').value);
+  });
 </script>
