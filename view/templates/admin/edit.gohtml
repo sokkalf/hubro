@@ -106,8 +106,7 @@
   });
 
   function save() {
-	  var editor = document.getElementById('editor');
-	  var content = editor.value;
+	  var content = editor.getValue();
 	  var fileName = '{{ .Entry.FileName }}';
 	  savePage(content, fileName);
   }
