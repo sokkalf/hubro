@@ -27,6 +27,8 @@ type HubroConfig struct {
 	Version             string
 	Environment         string
 	GelfEndpoint        *string
+	AdminEnabled        bool
+	AdminPassword       string
 }
 
 var Config *HubroConfig
@@ -109,6 +111,17 @@ func Init() {
 	}
 	if environment, ok := os.LookupEnv("HUBRO_ENVIRONMENT"); ok {
 		config.Environment = environment
+	}
+	if adminEnabled, ok := os.LookupEnv("HUBRO_ADMIN_ENABLED"); ok {
+		config.AdminEnabled, _ = strconv.ParseBool(adminEnabled)
+	}
+	if adminPassword, ok := os.LookupEnv("HUBRO_ADMIN_PASSWORD"); ok {
+		config.AdminPassword = adminPassword
+	} else {
+		if config.AdminEnabled {
+			config.AdminEnabled = false
+			slog.Warn("Admin interface disabled, no password set")
+		}
 	}
 	if gelfEndpoint, ok := os.LookupEnv("HUBRO_GELF_ENDPOINT"); ok {
 		config.GelfEndpoint = &gelfEndpoint

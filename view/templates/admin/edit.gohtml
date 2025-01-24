@@ -1,0 +1,114 @@
+<div class="mx-auto max-w-full rounded-lg bg-white p-6 text-gray-500 shadow dark:bg-slate-900 dark:text-gray-300">
+  <!-- Tabs -->
+  <div class="mb-4 border-b border-gray-200 dark:border-slate-700">
+    <ul class="flex text-sm font-medium">
+      <li>
+        <button
+          class="px-4 py-2 hover:border-b-2 hover:border-blue-800 focus:outline-none"
+          onclick="showTab('editorTab')"
+          id="editorTabButton"
+        >
+          Editor
+        </button>
+      </li>
+      <li class="ml-2">
+        <button
+          class="px-4 py-2 hover:border-b-2 hover:border-blue-800 focus:outline-none"
+          onclick="showTab('previewTab')"
+          id="previewTabButton"
+        >
+          Preview
+        </button>
+      </li>
+	  <li class="ml-auto justify-end border-b-2 border-red-800 hover:font-bold hover:border-red-500">
+		  <button class="px-4 py-2 focus:outline-none" onclick="save();">Save</button>
+	  </li>
+    </ul>
+  </div>
+
+  <!-- Editor Tab -->
+  <div id="editorTab">
+    <h1 class="text-2xl">{{ .Entry.Title }}</h1>
+    <textarea
+      id="editor"
+      class="h-full w-full bg-slate-900 text-gray-200"
+    >{{ .RawContent }}</textarea>
+  </div>
+
+  <!-- Preview Tab (initially hidden) -->
+  <div id="previewTab" class="hidden">
+	<h1 id="title" class="hidden text-3xl font-semibold text-black dark:text-white">
+	</h1>
+	<div id="tags" class="flex flex-wrap gap-y-2 py-2 tags">
+	</div>
+	<div id="author-block" class="py-2 hidden">
+		<p class="text-sm text-gray-500 dark:text-gray-300">
+			by <span id="author"></span>, <span id="date"></span>
+		</p>
+	</div>
+    <div class="h-full w-full markdown-body" id="markdown-preview"></div>
+  </div>
+</div>
+
+<script>
+  function showTab(tabId) {
+    // Hide both tabs
+    document.getElementById('editorTab').classList.add('hidden');
+    document.getElementById('previewTab').classList.add('hidden');
+
+    // Show the selected tab
+    document.getElementById(tabId).classList.remove('hidden');
+
+    // OPTIONAL: If you want to handle tab button states (active/inactive styles):
+    document.getElementById('editorTabButton').classList.remove('border-b-2', 'border-blue-500');
+    document.getElementById('previewTabButton').classList.remove('border-b-2', 'border-blue-500');
+    if (tabId === 'editorTab') {
+      document.getElementById('editorTabButton').classList.add('border-b-2', 'border-blue-500');
+    } else {
+      document.getElementById('previewTabButton').classList.add('border-b-2', 'border-blue-500');
+    }
+  }
+
+  // Optionally show Editor tab by default on page load:
+  showTab('editorTab');
+  var editor;
+  document.addEventListener('htmx:load', function() {
+	if(!document.getElementById('editor')) {
+		return;
+	}
+	editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+	  mode: 'markdown',
+	  lineNumbers: true,
+	  lineWrapping: true,
+	  matchBrackets: true,
+	  theme: 'midnight'
+	});
+	editor.setSize('100%', '100%');
+	editor.on('change', function() {
+		sendMarkdown(editor.getValue(), '{{ .Entry.FileName }}');
+	});
+	sendMarkdown(editor.getValue(), '{{ .Entry.FileName }}');
+  });
+  document.addEventListener('DOMContentLoaded', function() {
+	// initialize codemirror
+	editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+		mode: 'markdown',
+		lineNumbers: true,
+		lineWrapping: true,
+		matchBrackets: true,
+		theme: 'midnight'
+	});
+	editor.setSize('100%', '100%');
+	editor.on('change', function() {
+		sendMarkdown(editor.getValue(), '{{ .Entry.FileName }}');
+	});
+	sendMarkdown(editor.getValue(), '{{ .Entry.FileName }}');
+  });
+
+  function save() {
+	  var editor = document.getElementById('editor');
+	  var content = editor.value;
+	  var fileName = '{{ .Entry.FileName }}';
+	  savePage(content, fileName);
+  }
+</script>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Admin - {{ appTitle }}</title>
+  <script src="{{ appJS }}"></script>
+  <script defer src="{{ vendor "alpine.js" }}"></script>
+  <script src="{{ vendorPath "codemirror/js/codemirror.js" }}"></script>
+  <script src="{{ vendorPath "codemirror/js/markdown.js" }}"></script>
+  <script src="{{ vendorPath "codemirror/js/matchbrackets.js" }}"></script>
+
+  <link href="{{ appCSS }}" rel="stylesheet">
+  <link href="{{ vendorPath "codemirror/css/codemirror.css" }}" rel="stylesheet">
+  <link href="{{ vendorPath "codemirror/css/midnight.css" }}" rel="stylesheet">
+</head>
+<body class="bg-gray-100 dark:bg-slate-900">
+	{{ template "partials/_topbar" . }}
+	<main data-x-data="{}" class="px-2 py-2 main-content">
+		{{yield}}
+	</main>
+	{{ template "partials/_footer" . }}
+	<script>
+		window.HubroInit();
+		window.AdminInit();
+	</script>
+</body>
+</html>

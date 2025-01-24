@@ -13,6 +13,7 @@ import (
 	"github.com/sokkalf/hubro/helpers"
 	"github.com/sokkalf/hubro/index"
 	"github.com/sokkalf/hubro/logging"
+	"github.com/sokkalf/hubro/modules/admin"
 	"github.com/sokkalf/hubro/modules/feeds"
 	"github.com/sokkalf/hubro/modules/healthcheck"
 	"github.com/sokkalf/hubro/modules/page"
@@ -70,20 +71,27 @@ func main() {
 	if err != nil {
 		slog.Error("Error watching blog directory", "error", err)
 	}
+	pageIndex.FilesDir = *pagesDir
+	blogIndex.FilesDir = *blogDir
+	pageIndex.DirPath = config.Config.PagesDir
+	blogIndex.DirPath = config.Config.BlogDir
 	helpers.TagCloudInit(pageIndex)
 	helpers.TagCloudInit(blogIndex)
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 	go func () {
 		defer wg.Done()
-		h.AddModule("/page", page.Register, page.PageOptions{FilesDir: *pagesDir, Index: pageIndex})
+		h.AddModule("/page", page.Register, page.PageOptions{Index: pageIndex})
 	}()
 	go func () {
 		defer wg.Done()
-		h.AddModule("/blog", page.Register, page.PageOptions{FilesDir: *blogDir, Index: blogIndex})
+		h.AddModule("/blog", page.Register, page.PageOptions{Index: blogIndex})
 	}()
 	wg.Wait()
 	h.AddModule("/api/pages", pagesAPI.Register, []*index.Index{pageIndex, blogIndex})
+	if config.Config.AdminEnabled {
+		h.AddModule("/admin", admin.Register, nil)
+	}
 
 	if config.Config.FeedsEnabled {
 		if blogIndex.Count() > 0 {

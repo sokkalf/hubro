@@ -55,6 +55,79 @@ function boostLocalLinks() {
 	});
 }
 
+function updateWSStatus(st) {
+	document.querySelector('#ws-status').innerText = st;
+}
+
+function renderPreview(data) {
+	const preview = document.querySelector('#markdown-preview');
+	preview.innerHTML = data.content;
+	if (!data.meta.hideAuthor && data.meta.author) {
+		document.querySelector('#author-block').classList.remove('hidden');
+		document.querySelector('#author').innerText = data.meta.author;
+		if(data.meta.date) {
+			document.querySelector('#date').innerText = timeAgo(data.meta.date);
+			document.querySelector('#date').setAttribute('title', data.meta.date);
+		}
+	} else {
+		document.querySelector('#author-block').classList.add('hidden');
+	}
+	if (!data.meta.hideTitle && data.meta.title) {
+		document.querySelector('#title').innerText = data.meta.title;
+		document.querySelector('#title').classList.remove('hidden');
+	} else {
+		document.querySelector('#title').classList.add('hidden');
+	}
+	document.querySelector('#tags').innerHTML = '';
+	for (tag of data.meta.tags) {
+		var tagHtml = `<span class="mx-1 rounded-full bg-indigo-300 px-3 py-1 text-sm tag text-gray-800 dark:text-gray-800">` + tag + `</span>`
+		document.querySelector('#tags').innerHTML += tagHtml;
+	}
+}
+
+function handleWSMessage(event) {
+	const data = JSON.parse(event.data);
+	if (data.type === 'reload') {
+		window.location.reload();
+	}
+	if (data.type === 'markdown') {
+		renderPreview(data);
+		console.log(data.meta);
+	}
+	if (date.type === 'filecontent') {
+		document.querySelector('#editor').value = data.content;
+	}
+}
+
+function initWS() {
+	if (window.ws) {
+		if (window.ws.readyState === WebSocket.OPEN) {
+			return;
+		}
+	}
+
+	const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+	const ws = new WebSocket(scheme + '://' + window.location.host + '/admin/ws');
+	window.ws = ws;
+
+	ws.onopen = function() {
+		console.log('WebSocket is open');
+		updateWSStatus('🟢');
+	}
+	ws.onmessage = handleWSMessage;
+	ws.onclose = function() {
+    	console.log('WebSocket is closed. Reconnecting in 5 seconds...');
+		updateWSStatus('🔴');
+    	setTimeout(function() {
+        	initWS(); // Attempt to reconnect
+		}, 5000);
+    };
+	ws.onerror = function(err) {
+		updateWSStatus('🔴');
+		console.error('WebSocket error observed:', err);
+	}
+}
+
 // Expose toggleTheme to the window for easy hooking (e.g., button onclick)
 window.toggleTheme = toggleTheme;
 window.removeTheme = removeTheme;
@@ -62,6 +135,7 @@ window.initTheme = initTheme;
 
 window.HubroInit = function() {
 	initTheme();
+	updateWSStatus('');
 	highlightNewCodeBlocks();
 	boostLocalLinks();
 	document.addEventListener('alpine:init', () => {
@@ -126,4 +200,40 @@ window.HubroInit = function() {
 		});
 	  });
 	});
+}
+
+window.AdminInit = function() {
+	initWS();
+
+	document.addEventListener('htmx:load', function() {
+		idx = new URLSearchParams(window.location.search).get('idx');
+		file = new URLSearchParams(window.location.search).get('p');
+		if (idx !== null && file !== null) {
+			if (ws.readyState === WebSocket.OPEN) {
+				ws.send(JSON.stringify({ type: 'load', id: file, idx: idx }));
+			}
+		}
+	});
+}
+
+function debounce(fn, delay) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      fn.apply(this, args);
+    }, delay);
+  };
+}
+
+window.sendMarkdown = debounce(function(value, id) {
+	const ws = window.ws;
+	const markdown = value;
+	ws.send(JSON.stringify({ type: 'markdown', content: markdown, id: id }));
+}, 300);
+
+window.savePage = function(value, id) {
+	const ws = window.ws;
+	const idx = new URLSearchParams(window.location.search).get('idx');
+	ws.send(JSON.stringify({ type: 'save', content: value, id: id, idx: idx }));
 }

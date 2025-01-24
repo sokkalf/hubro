@@ -23,7 +23,6 @@ import (
 )
 
 type PageOptions struct {
-	FilesDir fs.FS
 	Index    *index.Index
 }
 type indexedPage struct {
@@ -31,6 +30,8 @@ type indexedPage struct {
 	modTime time.Time
 }
 
+var md goldmark.Markdown
+var mdMutex sync.Mutex
 var indexedPages = make(map[*index.Index][]indexedPage)
 var indexedPagesMutex sync.RWMutex
 
@@ -67,7 +68,7 @@ func parse(prefix string, md goldmark.Markdown, path string, opts PageOptions, i
 
 	start := time.Now()
 	name := strings.TrimSuffix(path, ".md")
-	content, err := fs.ReadFile(opts.FilesDir, path)
+	content, err := fs.ReadFile(opts.Index.FilesDir, path)
 	if err != nil {
 		slog.Error("Error reading page file", "page", path, "error", err)
 		return err
@@ -161,13 +162,17 @@ func handler(h *server.Hubro, index *index.Index) http.HandlerFunc {
 }
 
 func scanMarkdownFiles(prefix string, opts PageOptions) (filesScanned, numNew, numUpdated, numDeleted int) {
-	md := goldmark.New(
-		goldmark.WithExtensions(extension.GFM, meta.Meta),
-		goldmark.WithParserOptions(parser.WithAutoHeadingID()),
-		goldmark.WithRendererOptions(html.WithUnsafe()),
-	)
+	mdMutex.Lock()
+	if md == nil {
+		md = goldmark.New(
+			goldmark.WithExtensions(extension.GFM, meta.Meta),
+			goldmark.WithParserOptions(parser.WithAutoHeadingID()),
+			goldmark.WithRendererOptions(html.WithUnsafe()),
+		)
+	}
+	mdMutex.Unlock()
 	filesScannedList := make([]string, 0)
-	fs.WalkDir(opts.FilesDir, ".", func(path string, d fs.DirEntry, err error) error {
+	fs.WalkDir(opts.Index.FilesDir, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".md") {
 			fi, err := d.Info()
 			if err != nil {
@@ -246,6 +251,19 @@ func scanMarkdownFiles(prefix string, opts PageOptions) (filesScanned, numNew, n
 	indexedPagesMutex.Unlock()
 
 	return filesScanned, numNew, numUpdated, numDeleted
+}
+
+func GetMarkdownParser() goldmark.Markdown {
+	mdMutex.Lock()
+	if md == nil {
+		md = goldmark.New(
+			goldmark.WithExtensions(extension.GFM, meta.Meta),
+			goldmark.WithParserOptions(parser.WithAutoHeadingID()),
+			goldmark.WithRendererOptions(html.WithUnsafe()),
+		)
+	}
+	mdMutex.Unlock()
+	return md
 }
 
 func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {

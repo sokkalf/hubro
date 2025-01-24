@@ -3,6 +3,7 @@ package index
 import (
 	"fmt"
 	"html/template"
+	"io/fs"
 	"log/slog"
 	"slices"
 	"sort"
@@ -52,6 +53,8 @@ type Index struct {
 	mtx        sync.RWMutex
 	sortMode   int
 	MsgBroker  *broker.Broker[Message]
+	FilesDir   fs.FS
+	DirPath    string
 }
 
 const (
@@ -88,6 +91,10 @@ func GetIndex(name string) *Index {
 		return i
 	}
 	return nil
+}
+
+func GetIndices() Indices {
+	return indices
 }
 
 func (i *Index) GetName() string {
