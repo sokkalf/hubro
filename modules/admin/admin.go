@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/coder/websocket"
+	"github.com/sokkalf/hubro/config"
 	"github.com/sokkalf/hubro/index"
 	"github.com/sokkalf/hubro/modules/page"
 	"github.com/sokkalf/hubro/server"
@@ -20,7 +21,7 @@ import (
 func basicAuth(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		username, password, ok := r.BasicAuth()
-		if !ok || username != "admin" || password != "admin" {
+		if !ok || username != "admin" || password != config.Config.AdminPassword {
 			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return

@@ -89,7 +89,9 @@ func main() {
 	}()
 	wg.Wait()
 	h.AddModule("/api/pages", pagesAPI.Register, []*index.Index{pageIndex, blogIndex})
-	h.AddModule("/admin", admin.Register, nil)
+	if config.Config.AdminEnabled {
+		h.AddModule("/admin", admin.Register, nil)
+	}
 
 	if config.Config.FeedsEnabled {
 		if blogIndex.Count() > 0 {
