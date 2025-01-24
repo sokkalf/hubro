@@ -73,6 +73,8 @@ func main() {
 	}
 	pageIndex.FilesDir = *pagesDir
 	blogIndex.FilesDir = *blogDir
+	pageIndex.DirPath = config.Config.PagesDir
+	blogIndex.DirPath = config.Config.BlogDir
 	helpers.TagCloudInit(pageIndex)
 	helpers.TagCloudInit(blogIndex)
 	wg := sync.WaitGroup{}

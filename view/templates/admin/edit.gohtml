@@ -21,7 +21,7 @@
         </button>
       </li>
 	  <li class="ml-auto justify-end border-b-2 border-red-800 hover:font-bold hover:border-red-500">
-		  <button class="px-4 py-2 focus:outline-none" onclick="savePage()">Save</button>
+		  <button class="px-4 py-2 focus:outline-none" onclick="save();">Save</button>
 	  </li>
     </ul>
   </div>
@@ -71,9 +71,27 @@
 
   // Optionally show Editor tab by default on page load:
   showTab('editorTab');
+  var editor;
+  document.addEventListener('htmx:load', function() {
+	if(!document.getElementById('editor')) {
+		return;
+	}
+	editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+	  mode: 'markdown',
+	  lineNumbers: true,
+	  lineWrapping: true,
+	  matchBrackets: true,
+	  theme: 'midnight'
+	});
+	editor.setSize('100%', '100%');
+	editor.on('change', function() {
+		sendMarkdown(editor.getValue(), '{{ .Entry.FileName }}');
+	});
+	sendMarkdown(editor.getValue(), '{{ .Entry.FileName }}');
+  });
   document.addEventListener('DOMContentLoaded', function() {
 	// initialize codemirror
-	var editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+	editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
 		mode: 'markdown',
 		lineNumbers: true,
 		lineWrapping: true,
@@ -86,4 +104,11 @@
 	});
 	sendMarkdown(editor.getValue(), '{{ .Entry.FileName }}');
   });
+
+  function save() {
+	  var editor = document.getElementById('editor');
+	  var content = editor.value;
+	  var fileName = '{{ .Entry.FileName }}';
+	  savePage(content, fileName);
+  }
 </script>

@@ -54,6 +54,7 @@ type Index struct {
 	sortMode   int
 	MsgBroker  *broker.Broker[Message]
 	FilesDir   fs.FS
+	DirPath    string
 }
 
 const (

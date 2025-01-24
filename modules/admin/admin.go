@@ -7,13 +7,14 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/coder/websocket"
 	"github.com/sokkalf/hubro/index"
 	"github.com/sokkalf/hubro/modules/page"
 	"github.com/sokkalf/hubro/server"
-	"github.com/yuin/goldmark/parser"
 	meta "github.com/yuin/goldmark-meta"
+	"github.com/yuin/goldmark/parser"
 )
 
 func basicAuth(h http.HandlerFunc) http.HandlerFunc {
@@ -119,6 +120,48 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 				responses["meta"] = metaData
 				b, _ := json.Marshal(responses)
 				conn.Write(ctx, t, b)
+			case "load":
+				fileName := msg["id"].(string)
+				idxName := msg["idx"].(string)
+				idx := index.GetIndex(idxName)
+				if idx == nil {
+					slog.Error("Index not found", "index", idxName)
+					return
+				}
+				fileName = idx.GetEntryBySlug(fileName).FileName
+				content, err := fs.ReadFile(idx.FilesDir, fileName)
+				if err != nil {
+					slog.Error("Error reading file", "error", err)
+					return
+				}
+				responses := make(map[string]interface{})
+				responses["type"] = "filecontent"
+				responses["content"] = string(content)
+				responses["id"] = fileName
+				b, _ := json.Marshal(responses)
+				conn.Write(ctx, t, b)
+			case "save":
+				fileName := msg["id"].(string)
+				content := msg["content"].(string)
+				_ = content
+				idxName := msg["idx"].(string)
+				idx := index.GetIndex(idxName)
+				if idx == nil {
+					slog.Error("Index not found", "index", idxName)
+					return
+				}
+				stat, err := fs.Stat(idx.FilesDir, fileName)
+				if err != nil {
+					slog.Error("Error getting file info", "error", err)
+					return
+				}
+				path := idx.DirPath + "/" + fileName
+				err = os.WriteFile(path, []byte(content), stat.Mode())
+				if err != nil {
+					slog.Error("Error writing to file", "error", err)
+					return
+				}
+				slog.Info("File saved", "file", path)
 			default:
 				slog.Debug("received unknown message", "message", string(b), "type", t)
 			}
