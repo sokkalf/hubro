@@ -20,9 +20,9 @@
           Preview
         </button>
       </li>
-	  <li class="ml-auto justify-end border-b-2 border-red-800 hover:font-bold hover:border-red-500">
-		  <button class="px-4 py-2 focus:outline-none" onclick="save();">Save</button>
-	  </li>
+      <li class="ml-auto justify-end border-b-2 border-red-800 hover:font-bold hover:border-red-500">
+        <button class="px-4 py-2 focus:outline-none" onclick="save();">Save</button>
+      </li>
     </ul>
   </div>
 
@@ -37,20 +37,23 @@
 
   <!-- Preview Tab (initially hidden) -->
   <div id="previewTab" class="hidden">
-	<h1 id="title" class="hidden text-3xl font-semibold text-black dark:text-white">
-	</h1>
-	<div id="tags" class="flex flex-wrap gap-y-2 py-2 tags">
-	</div>
-	<div id="author-block" class="py-2 hidden">
-		<p class="text-sm text-gray-500 dark:text-gray-300">
-			by <span id="author"></span>, <span id="date"></span>
-		</p>
-	</div>
+    <h1 id="title" class="hidden text-3xl font-semibold text-black dark:text-white"></h1>
+    <div id="tags" class="flex flex-wrap gap-y-2 py-2 tags"></div>
+    <div id="author-block" class="py-2 hidden">
+      <p class="text-sm text-gray-500 dark:text-gray-300">
+        by <span id="author"></span>, <span id="date"></span>
+      </p>
+    </div>
     <div class="h-full w-full markdown-body" id="markdown-preview"></div>
   </div>
 </div>
 
 <script>
+  // Global variables
+  var editor = null;
+  var editorInitialized = false;
+
+  // Tabs
   function showTab(tabId) {
     // Hide both tabs
     document.getElementById('editorTab').classList.add('hidden');
@@ -59,7 +62,7 @@
     // Show the selected tab
     document.getElementById(tabId).classList.remove('hidden');
 
-    // OPTIONAL: If you want to handle tab button states (active/inactive styles):
+    // (Optional) handle active tab styles:
     document.getElementById('editorTabButton').classList.remove('border-b-2', 'border-blue-500');
     document.getElementById('previewTabButton').classList.remove('border-b-2', 'border-blue-500');
     if (tabId === 'editorTab') {
@@ -68,46 +71,42 @@
       document.getElementById('previewTabButton').classList.add('border-b-2', 'border-blue-500');
     }
   }
-
-  // Optionally show Editor tab by default on page load:
+  // Show Editor tab by default on page load
   showTab('editorTab');
-  var editor;
-  document.addEventListener('htmx:load', function() {
-	if(!document.getElementById('editor')) {
-		return;
-	}
-	editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
-	  mode: 'markdown',
-	  lineNumbers: true,
-	  lineWrapping: true,
-	  matchBrackets: true,
-	  theme: 'midnight'
-	});
-	editor.setSize('100%', '100%');
-	editor.on('change', function() {
-		sendMarkdown(editor.getValue(), '{{ .Entry.FileName }}');
-	});
-	sendMarkdown(editor.getValue(), '{{ .Entry.FileName }}');
-  });
-  document.addEventListener('DOMContentLoaded', function() {
-	// initialize codemirror
-	editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
-		mode: 'markdown',
-		lineNumbers: true,
-		lineWrapping: true,
-		matchBrackets: true,
-		theme: 'midnight'
-	});
-	editor.setSize('100%', '100%');
-	editor.on('change', function() {
-		sendMarkdown(editor.getValue(), '{{ .Entry.FileName }}');
-	});
-	sendMarkdown(editor.getValue(), '{{ .Entry.FileName }}');
-  });
 
+  // Initialize the editor (only once)
+  function initEditor() {
+    // If already initialized or no textarea present, do nothing.
+    if (editorInitialized) return;
+    const editorTextarea = document.getElementById('editor');
+    if (!editorTextarea) return;
+
+    editorInitialized = true;  // mark as done
+    editor = CodeMirror.fromTextArea(editorTextarea, {
+      mode: 'markdown',
+      lineNumbers: true,
+      lineWrapping: true,
+      matchBrackets: true,
+      theme: 'midnight'
+    });
+    editor.setSize('100%', '100%');
+    editor.on('change', function() {
+      sendMarkdown(editor.getValue(), '{{ .Entry.FileName }}');
+    });
+    // Send initial markdown
+    sendMarkdown(editor.getValue(), '{{ .Entry.FileName }}');
+  }
+
+  // Listen for DOMContentLoaded (full page load)
+  document.addEventListener('DOMContentLoaded', initEditor);
+
+  // Listen for htmx:load (might fire multiple times if content is swapped in/out)
+  document.addEventListener('htmx:load', initEditor);
+
+  // Save function
   function save() {
-	  var content = editor.getValue();
-	  var fileName = '{{ .Entry.FileName }}';
-	  savePage(content, fileName);
+    const content = editor.getValue();
+    const fileName = '{{ .Entry.FileName }}';
+    savePage(content, fileName);
   }
 </script>
