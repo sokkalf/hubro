@@ -205,12 +205,18 @@ window.HubroInit = function() {
 window.AdminInit = function() {
 	initWS();
 
-	document.addEventListener('htmx:load', function() {
+	window.editorLoaded = false;
+
+	document.addEventListener('htmx:pushedIntoHistory', function() {
+		if (window.editorLoaded) {
+			return;
+		}
 		idx = new URLSearchParams(window.location.search).get('idx');
 		file = new URLSearchParams(window.location.search).get('p');
 		if (idx !== null && file !== null) {
 			if (ws.readyState === WebSocket.OPEN) {
 				ws.send(JSON.stringify({ type: 'load', id: file, idx: idx }));
+				window.editorLoaded = true;
 			}
 		}
 	});
