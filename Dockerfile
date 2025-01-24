@@ -6,7 +6,7 @@ COPY . /app
 ARG VERSION
 ENV REVISION=$VERSION
 RUN scripts/setup.sh
-RUN bin/tailwindcss -c view/tailwind.config.js -i view/assets/css/app.css -m -o minified_app.css
+RUN bin/tailwindcss -i view/assets/css/app.css -m -o minified_app.css
 RUN bin/esbuild view/assets/js/app.js --minify --target=es2017 --bundle --outfile=minified_app.js
 RUN go build -ldflags="-s -w -X main.Version=$REVISION" -o /app/tmp/hubro
 

@@ -1,9 +1,8 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import "tailwindcss";
 @import "./markdown.css";
 @import "../vendor/highlight/github.min.css";
 @import "../vendor/highlight/github-dark.min.css";
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* Add your custom styles here */
 .topnav {
