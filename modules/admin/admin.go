@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -17,6 +18,14 @@ import (
 	meta "github.com/yuin/goldmark-meta"
 	"github.com/yuin/goldmark/parser"
 )
+
+func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
+    slog.Info("Registering admin module")
+
+    mux.Handle("/", basicAuth(adminIndexHandler(h)))
+    mux.Handle("/edit", basicAuth(adminEditHandler(h)))
+    mux.Handle("/ws", basicAuth(adminWebSocketHandler(h)))
+}
 
 func basicAuth(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -44,128 +53,184 @@ func renderMarkdown(markdown []byte) ([]byte, map[string]interface{}, error) {
 	return buf.Bytes(), metaData, nil
 }
 
-func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
-	slog.Info("Registering admin module")
+func adminIndexHandler(h *server.Hubro) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        indices := index.GetIndices()
+        h.RenderWithLayout(w, r, "admin/app", "admin/index", indices)
+    }
+}
 
-	indices := make([]*index.Index, 0)
-	for _, i := range index.GetIndices() {
-		indices = append(indices, i)
-	}
+func adminEditHandler(h *server.Hubro) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        slug := r.URL.Query().Get("p")
+        idxName := r.URL.Query().Get("idx")
 
-	mux.Handle("/", basicAuth(func(w http.ResponseWriter, r *http.Request) {
-		h.RenderWithLayout(w, r, "admin/app", "admin/index", indices)
-	}))
-	mux.Handle("/edit", basicAuth(func(w http.ResponseWriter, r *http.Request) {
-		slug := r.URL.Query().Get("p")
-		idx := r.URL.Query().Get("idx")
-		if idx == "" {
-			msg := "Index not found"
-			h.ErrorHandler(w, r, http.StatusNotFound, &msg)
-			return
-		}
-		i := index.GetIndex(idx)
-		if i == nil {
-			msg := "Index not found"
-			h.ErrorHandler(w, r, http.StatusNotFound, &msg)
-			return
-		}
-		entry := i.GetEntryBySlug(slug)
-		if entry == nil {
-			msg := "Entry not found"
-			h.ErrorHandler(w, r, http.StatusNotFound, &msg)
-			return
-		}
-		fileContent, err := fs.ReadFile(i.FilesDir, entry.FileName)
-		if err != nil {
-			msg := "Error reading file"
-			slog.Error("Error reading file", "error", err)
-			h.ErrorHandler(w, r, http.StatusInternalServerError, &msg)
-			return
-		}
+        i, err := getIndexByName(idxName)
+        if err != nil {
+			msg := err.Error()
+            h.ErrorHandler(w, r, http.StatusNotFound, &msg)
+            return
+        }
 
-		data := struct {
-			Entry *index.IndexEntry
-			RawContent string
-		}{entry, string(fileContent)}
+        entry := i.GetEntryBySlug(slug)
+        if entry == nil {
+            msg := "Entry not found"
+            h.ErrorHandler(w, r, http.StatusNotFound, &msg)
+            return
+        }
 
-		h.RenderWithLayout(w, r, "admin/app", "admin/edit", data)
-	}))
-	mux.Handle("/ws", basicAuth(func(w http.ResponseWriter, r *http.Request) {
-		conn, err := websocket.Accept(w, r, nil)
-		if err != nil {
-			slog.Error("Error accepting websocket connection", "error", err)
-			return
-		}
-		defer conn.CloseNow()
-		ctx := context.Background()
+        fileContent, err := fs.ReadFile(i.FilesDir, entry.FileName)
+        if err != nil {
+            msg := "Error reading file"
+            slog.Error(msg, "error", err)
+            h.ErrorHandler(w, r, http.StatusInternalServerError, &msg)
+            return
+        }
 
-		for {
-			t, b, err := conn.Read(ctx)
-			if err != nil {
-				// ...
-				slog.Error("Error reading message", "error", err)
-				return
-			}
-			var msg map[string]interface{}
-			json.Unmarshal(b, &msg)
-			switch msg["type"] {
-			case "markdown":
-				rendered, metaData, err := renderMarkdown([]byte(msg["content"].(string)))
-				if err != nil {
-					slog.Error("Error rendering markdown", "error", err)
-				}
-				responses := make(map[string]interface{})
-				responses["type"] = "markdown"
-				responses["content"] = string(rendered)
-				responses["id"] = msg["id"]
-				responses["meta"] = metaData
-				b, _ := json.Marshal(responses)
-				conn.Write(ctx, t, b)
-			case "load":
-				fileName := msg["id"].(string)
-				idxName := msg["idx"].(string)
-				idx := index.GetIndex(idxName)
-				if idx == nil {
-					slog.Error("Index not found", "index", idxName)
-					return
-				}
-				fileName = idx.GetEntryBySlug(fileName).FileName
-				content, err := fs.ReadFile(idx.FilesDir, fileName)
-				if err != nil {
-					slog.Error("Error reading file", "error", err)
-					return
-				}
-				responses := make(map[string]interface{})
-				responses["type"] = "filecontent"
-				responses["content"] = string(content)
-				responses["id"] = fileName
-				b, _ := json.Marshal(responses)
-				conn.Write(ctx, t, b)
-			case "save":
-				fileName := msg["id"].(string)
-				content := msg["content"].(string)
-				_ = content
-				idxName := msg["idx"].(string)
-				idx := index.GetIndex(idxName)
-				if idx == nil {
-					slog.Error("Index not found", "index", idxName)
-					return
-				}
-				stat, err := fs.Stat(idx.FilesDir, fileName)
-				if err != nil {
-					slog.Error("Error getting file info", "error", err)
-					return
-				}
-				path := idx.DirPath + "/" + fileName
-				err = os.WriteFile(path, []byte(content), stat.Mode())
-				if err != nil {
-					slog.Error("Error writing to file", "error", err)
-					return
-				}
-				slog.Info("File saved", "file", path)
-			default:
-				slog.Debug("received unknown message", "message", string(b), "type", t)
-			}
-		}
-	}))
+        data := struct {
+            Entry      *index.IndexEntry
+            RawContent string
+        }{
+            Entry:      entry,
+            RawContent: string(fileContent),
+        }
+
+        h.RenderWithLayout(w, r, "admin/app", "admin/edit", data)
+    }
+}
+
+func adminWebSocketHandler(h *server.Hubro) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        conn, err := websocket.Accept(w, r, nil)
+        if err != nil {
+            slog.Error("Error accepting websocket connection", "error", err)
+            return
+        }
+        defer conn.Close(websocket.StatusInternalError, "closing")
+
+        ctx := context.Background()
+        for {
+            msgType, rawMsg, err := conn.Read(ctx)
+            if err != nil {
+                slog.Error("Error reading message", "error", err)
+                return
+            }
+
+            var msg map[string]interface{}
+            if err := json.Unmarshal(rawMsg, &msg); err != nil {
+                slog.Error("Invalid JSON message", "error", err)
+                return
+            }
+
+            switch msg["type"] {
+            case "markdown":
+                handleMarkdownMessage(ctx, conn, msgType, msg)
+
+            case "load":
+                handleLoadMessage(ctx, conn, msgType, msg)
+
+            case "save":
+                handleSaveMessage(ctx, conn, msg)
+
+            default:
+                slog.Debug("Received unknown message", "message", string(rawMsg), "type", msgType)
+            }
+        }
+    }
+}
+
+func handleMarkdownMessage(ctx context.Context, conn *websocket.Conn, msgType websocket.MessageType, msg map[string]interface{}) {
+    content, _ := msg["content"].(string)
+    rendered, metaData, err := renderMarkdown([]byte(content))
+    if err != nil {
+        slog.Error("Error rendering markdown", "error", err)
+        return
+    }
+    responses := map[string]interface{}{
+        "type":    "markdown",
+        "content": string(rendered),
+        "id":      msg["id"],
+        "meta":    metaData,
+    }
+    _ = writeJSON(ctx, conn, msgType, responses)
+}
+
+func handleLoadMessage(ctx context.Context, conn *websocket.Conn, msgType websocket.MessageType, msg map[string]interface{}) {
+    fileSlug, _ := msg["id"].(string)
+    idxName, _ := msg["idx"].(string)
+
+    idx, err := getIndexByName(idxName)
+    if err != nil {
+        slog.Error(err.Error())
+        return
+    }
+
+    entry := idx.GetEntryBySlug(fileSlug)
+    if entry == nil {
+        slog.Error("Entry not found", "slug", fileSlug)
+        return
+    }
+
+    content, err := fs.ReadFile(idx.FilesDir, entry.FileName)
+    if err != nil {
+        slog.Error("Error reading file", "error", err)
+        return
+    }
+
+    responses := map[string]interface{}{
+        "type":    "filecontent",
+        "content": string(content),
+        "id":      entry.FileName,
+    }
+    _ = writeJSON(ctx, conn, msgType, responses)
+}
+
+func handleSaveMessage(ctx context.Context, conn *websocket.Conn, msg map[string]interface{}) {
+    fileName, _ := msg["id"].(string)
+    content, _ := msg["content"].(string)
+    idxName, _ := msg["idx"].(string)
+
+    idx, err := getIndexByName(idxName)
+    if err != nil {
+        slog.Error(err.Error())
+        return
+    }
+
+    stat, err := fs.Stat(idx.FilesDir, fileName)
+    if err != nil {
+        slog.Error("Error getting file info", "error", err)
+        return
+    }
+
+    path := idx.DirPath + "/" + fileName
+    if err := os.WriteFile(path, []byte(content), stat.Mode()); err != nil {
+        slog.Error("Error writing to file", "error", err)
+        return
+    }
+
+    slog.Info("File saved", "file", path)
+}
+
+func getIndexByName(name string) (*index.Index, error) {
+    if name == "" {
+        return nil, fmt.Errorf("Index name not provided")
+    }
+    idx := index.GetIndex(name)
+    if idx == nil {
+        return nil, fmt.Errorf("Index not found: %s", name)
+    }
+    return idx, nil
+}
+
+func writeJSON(ctx context.Context, conn *websocket.Conn, msgType websocket.MessageType, v interface{}) error {
+    data, err := json.Marshal(v)
+    if err != nil {
+        slog.Error("Error marshalling JSON", "error", err)
+        return err
+    }
+    if wErr := conn.Write(ctx, msgType, data); wErr != nil {
+        slog.Error("Error writing WebSocket message", "error", wErr)
+        return wErr
+    }
+    return nil
 }
