@@ -93,8 +93,15 @@ function handleWSMessage(event) {
 	if (data.type === 'markdown') {
 		renderPreview(data);
 	}
-	if (date.type === 'filecontent') {
+	if (data.type === 'filecontent') {
 		document.querySelector('#editor').value = data.content;
+	}
+	if (data.type === 'saved') {
+		saveButton = document.querySelector('#save-button');
+		saveButton.innerText = 'Saved! ✅';
+		setTimeout(function() {
+			saveButton.innerText = 'Save';
+		}, 2000);
 	}
 }
 
@@ -206,18 +213,24 @@ window.AdminInit = function() {
 
 	window.editorLoaded = false;
 
-	document.addEventListener('htmx:pushedIntoHistory', function() {
-		if (window.editorLoaded) {
-			return;
-		}
+	loadFileIntoEditor = function() {
 		idx = new URLSearchParams(window.location.search).get('idx');
 		file = new URLSearchParams(window.location.search).get('p');
 		if (idx !== null && file !== null) {
 			if (ws.readyState === WebSocket.OPEN) {
 				ws.send(JSON.stringify({ type: 'load', id: file, idx: idx }));
 				window.editorLoaded = true;
+			} else {
+				console.error('WebSocket is not open');
 			}
 		}
+	}
+
+	document.addEventListener('htmx:pushedIntoHistory', function() {
+		if (window.editorLoaded) {
+			return;
+		}
+		loadFileIntoEditor();
 	});
 }
 
