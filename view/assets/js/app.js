@@ -92,7 +92,6 @@ function handleWSMessage(event) {
 	}
 	if (data.type === 'markdown') {
 		renderPreview(data);
-		console.log(data.meta);
 	}
 	if (date.type === 'filecontent') {
 		document.querySelector('#editor').value = data.content;
