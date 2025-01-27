@@ -17,7 +17,7 @@ require (
 
 require (
 	github.com/gosimple/unidecode v1.0.1 // indirect
-	github.com/samber/lo v1.47.0 // indirect
+	github.com/samber/lo v1.49.0 // indirect
 	github.com/samber/slog-common v0.18.1 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
