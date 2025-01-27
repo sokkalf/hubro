@@ -108,6 +108,10 @@ function handleWSMessage(event) {
 			window.location.href = '/admin/edit?p=' + data.slug + '&idx=' + data.index;
 		}, 1000);
 	}
+	if (data.type === 'error') {
+		alert(data.message);
+		console.error(data.message);
+	}
 }
 
 function initWS() {

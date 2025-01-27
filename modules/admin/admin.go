@@ -248,6 +248,13 @@ func handleCreateMessage(ctx context.Context, conn *websocket.Conn, msg map[stri
 	date := time.Now().Format("2006-01-02")
 	fileName := date + "-" + utils.Slugify(title) + ".md"
 	path := idx.DirPath + "/" + fileName
+	_, err = fs.Stat(idx.FilesDir, fileName)
+	if err == nil {
+		// file exists
+		slog.Error("File already exists", "file", path)
+		handleError(ctx, conn, "File already exists")
+		return
+	}
 	data := `---
 title: ` + title + `
 date: ` + date + `
@@ -268,6 +275,13 @@ draft: true
 	_ = writeJSON(ctx, conn, websocket.MessageText, responses)
 }
 
+func handleError(ctx context.Context, conn *websocket.Conn, msg string) {
+	responses := map[string]interface{}{
+		"type": "error",
+		"message":  msg,
+	}
+	_ = writeJSON(ctx, conn, websocket.MessageText, responses)
+}
 
 func getIndexByName(name string) (*index.Index, error) {
 	if name == "" {
