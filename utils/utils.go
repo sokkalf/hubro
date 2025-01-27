@@ -1,6 +1,14 @@
 package utils
 
-import "time"
+import (
+	"time"
+
+	"github.com/gosimple/slug"
+)
+
+func Slugify(s string) string {
+	return slug.Make(s)
+}
 
 func ParseDate(date string) time.Time {
 	t, err := time.Parse("2006-01-02", date)

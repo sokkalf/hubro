@@ -103,6 +103,11 @@ function handleWSMessage(event) {
 			saveButton.innerText = 'Save';
 		}, 2000);
 	}
+	if (data.type === 'created') {
+		setTimeout(function() {
+			window.location.href = '/admin/edit?p=' + data.slug + '&idx=' + data.index;
+		}, 1000);
+	}
 }
 
 function initWS() {
@@ -254,4 +259,9 @@ window.savePage = function(value, id) {
 	const ws = window.ws;
 	const idx = new URLSearchParams(window.location.search).get('idx');
 	ws.send(JSON.stringify({ type: 'save', content: value, id: id, idx: idx }));
+}
+
+window.createPage = function(title, idx) {
+	const ws = window.ws;
+	ws.send(JSON.stringify({ type: 'create', title: title, index: idx }));
 }

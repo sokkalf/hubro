@@ -9,12 +9,14 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/coder/websocket"
 	"github.com/sokkalf/hubro/config"
 	"github.com/sokkalf/hubro/index"
 	"github.com/sokkalf/hubro/modules/page"
 	"github.com/sokkalf/hubro/server"
+	"github.com/sokkalf/hubro/utils"
 	meta "github.com/yuin/goldmark-meta"
 	"github.com/yuin/goldmark/parser"
 )
@@ -24,6 +26,7 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 
 	mux.Handle("/", basicAuth(adminIndexHandler(h)))
 	mux.Handle("/edit", basicAuth(adminEditHandler(h)))
+	mux.Handle("/new", basicAuth(adminCreateHandler(h)))
 	mux.Handle("/ws", basicAuth(adminWebSocketHandler(h)))
 }
 
@@ -57,6 +60,20 @@ func adminIndexHandler(h *server.Hubro) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		indices := index.GetIndices()
 		h.RenderWithLayout(w, r, "admin/app", "admin/index", indices)
+	}
+}
+
+func adminCreateHandler(h *server.Hubro) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idxName := r.URL.Query().Get("idx")
+		idx, err := getIndexByName(idxName)
+		if err != nil {
+			msg := err.Error()
+			h.ErrorHandler(w, r, http.StatusNotFound, &msg)
+			return
+		}
+
+		h.RenderWithLayout(w, r, "admin/app", "admin/new", idx)
 	}
 }
 
@@ -132,6 +149,9 @@ func adminWebSocketHandler(h *server.Hubro) http.HandlerFunc {
 
 			case "save":
 				handleSaveMessage(ctx, conn, msg)
+
+			case "create":
+				handleCreateMessage(ctx, conn, msg)
 
 			default:
 				slog.Debug("Received unknown message", "message", string(rawMsg), "type", msgType)
@@ -216,6 +236,38 @@ func handleSaveMessage(ctx context.Context, conn *websocket.Conn, msg map[string
 	}
 	_ = writeJSON(ctx, conn, websocket.MessageText, responses)
 }
+
+func handleCreateMessage(ctx context.Context, conn *websocket.Conn, msg map[string]interface{}) {
+	idxName, _ := msg["index"].(string)
+	idx, err := getIndexByName(idxName)
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
+	title := msg["title"].(string)
+	date := time.Now().Format("2006-01-02")
+	fileName := date + "-" + utils.Slugify(title) + ".md"
+	path := idx.DirPath + "/" + fileName
+	data := `---
+title: ` + title + `
+date: ` + date + `
+author: ` + config.Config.AuthorName + `
+draft: true
+---
+`
+
+	os.WriteFile(path, []byte(data), 0644)
+	slog.Info("File created", "file", path)
+	responses := map[string]interface{}{
+		"type": "created",
+		"id":   fileName,
+		"slug": utils.Slugify(title),
+		"title": title,
+		"index": idxName,
+	}
+	_ = writeJSON(ctx, conn, websocket.MessageText, responses)
+}
+
 
 func getIndexByName(name string) (*index.Index, error) {
 	if name == "" {

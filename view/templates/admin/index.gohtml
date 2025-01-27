@@ -1,7 +1,7 @@
 <div class="mx-auto max-w-full rounded-lg bg-white p-6 text-gray-500 shadow dark:bg-slate-900 dark:text-gray-300">
 	{{ range . }}
 		{{ $name := .GetName }}
-		<p>{{ $name }}</p>
+		<p>{{ $name }}</p><p class="pl-6"><a href="{{ rootPath }}/admin/new?idx={{ $name }}">⭐ New</a></p>
 		<div class="ml-4">
 			<ul class="list-item">
 				{{ range .GetEntries }}

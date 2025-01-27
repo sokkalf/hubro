@@ -10,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gosimple/slug"
 	"github.com/yuin/goldmark"
 	meta "github.com/yuin/goldmark-meta"
 	"github.com/yuin/goldmark/extension"
@@ -34,10 +33,6 @@ var md goldmark.Markdown
 var mdMutex sync.Mutex
 var indexedPages = make(map[*index.Index][]indexedPage)
 var indexedPagesMutex sync.RWMutex
-
-func slugify(s string) string {
-	return slug.Make(s)
-}
 
 func getOrDefault[T any](m map[string]interface{}, key string, defaultVal T) T {
 	raw, ok := m[key]
@@ -117,8 +112,8 @@ func parse(prefix string, md goldmark.Markdown, path string, opts PageOptions, i
 	}
 	summary = &sum
 
-	slug := slugify(title)
-	handlerPath := "/" + slugify(title)
+	slug := utils.Slugify(title)
+	handlerPath := "/" + slug
 	err = indexFunc(index.IndexEntry{
 		Id:          path,
 		Slug:        slug,

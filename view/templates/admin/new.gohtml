@@ -1,0 +1,17 @@
+<div class="mx-auto max-w-full rounded-lg bg-white p-6 text-gray-500 shadow dark:bg-slate-900 dark:text-gray-300">
+	<input type="text" class="w-full border border-gray-200 dark:border-slate-700 rounded-lg p-2 mb-4" placeholder="Title" id="page_title" />
+	<input type="hidden" id="page_index" value="{{ .GetName }}" />
+	<button class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="createEntry();">Create</button>
+</div>
+<script>
+	function getFormValues() {
+		return {
+			title: document.getElementById('page_title').value,
+			index: document.getElementById('page_index').value,
+		};
+	}
+	function createEntry() {
+		const values = getFormValues();
+		createPage(values.title, values.index);
+	}
+</script>
