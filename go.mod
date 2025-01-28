@@ -8,7 +8,7 @@ require (
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/gorilla/feeds v1.2.0
 	github.com/gosimple/slug v1.15.0
-	github.com/lmittmann/tint v1.0.6
+	github.com/lmittmann/tint v1.0.7
 	github.com/samber/slog-graylog/v2 v2.7.3
 	github.com/samber/slog-multi v1.3.3
 	github.com/yuin/goldmark v1.7.8
@@ -17,7 +17,7 @@ require (
 
 require (
 	github.com/gosimple/unidecode v1.0.1 // indirect
-	github.com/samber/lo v1.49.0 // indirect
+	github.com/samber/lo v1.49.1 // indirect
 	github.com/samber/slog-common v0.18.1 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
