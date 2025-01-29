@@ -84,15 +84,12 @@ footer {
 	display: flex;
 	justify-content: center;
 	padding-bottom: 0.5em;
+	@apply dark:text-white text-black;
 }
 
 .pagination ul li {
 	padding-left: 10px;
 	padding-right: 10px;
-}
-
-.pagination ul li a a:hover a:visted {
-	color: #000;
 }
 
 .pagination .is-current {
