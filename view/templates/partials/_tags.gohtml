@@ -1,7 +1,7 @@
 <div class="flex flex-wrap gap-y-2 py-2 tags">
 	{{ range .Tags }}
 	<span class="mx-1 rounded-full bg-indigo-300 px-3 py-1 text-sm tag">
-		<a data-hx-boost="true" href="{{ rootPath }}?tag={{ . }}">{{ . }}</a>
+		<a data-hx-boost="true" href="{{ rootPath }}/?tag={{ . }}">{{ . }}</a>
 	</span>
 	{{ end }}
 </div>
