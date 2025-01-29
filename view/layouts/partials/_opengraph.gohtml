@@ -4,3 +4,8 @@
 <meta property="og:url" content="{{ baseURL }}">
 <meta property="og:type" content="{{ openGraphType }}">
 <meta property="og:site_name" content="{{ appTitle }}">
+{{ if eq openGraphType "article" }}
+{{ range .Tags }}
+<meta property="article:tag" content="{{ . }}">{{ end }}
+{{ if .Author }}<meta property="article:author" content="{{ .Author }}">{{ end }}
+{{ end }}
