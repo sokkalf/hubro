@@ -35,6 +35,7 @@ type IndexEntry struct {
 	Body        *template.HTML         `json:"body"`
 	Description string                 `json:"description"`
 	FileName    string                 `json:"fileName"`
+	Draft       bool                   `json:"draft"`
 }
 
 type Message int

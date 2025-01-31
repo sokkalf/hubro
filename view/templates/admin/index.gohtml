@@ -5,7 +5,9 @@
 		<div class="ml-4">
 			<ul class="list-item">
 				{{ range .GetEntries }}
-				<li><a href="{{ rootPath }}/admin/edit?idx={{ $name }}&p={{ .Slug }}">{{ .Title }}</a></li>
+				<li><a href="{{ rootPath }}/admin/edit?idx={{ $name }}&p={{ .Slug }}">{{ .Title }}</a>
+					{{ if .Draft }}<span class="text-xs text-red-500">[DRAFT]</span>{{ end }}
+				</li>
 				{{ end }}
 			</ul>
 		</div>

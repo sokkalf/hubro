@@ -82,6 +82,10 @@ func parse(prefix string, md goldmark.Markdown, path string, opts PageOptions, i
 	sortOrder := getOrDefault(metaData, "sortOrder", 0)
 	hideAuthor := getOrDefault(metaData, "hideAuthor", false)
 	hideTitle := getOrDefault(metaData, "hideTitle", false)
+	draft := getOrDefault(metaData, "draft", false)
+	if draft {
+		visible = false
+	}
 
 	if t, ok := metaData["tags"]; ok {
 		tags = make([]string, 0)
@@ -132,6 +136,7 @@ func parse(prefix string, md goldmark.Markdown, path string, opts PageOptions, i
 		Summary:     summary,
 		Body:        body,
 		FileName:    path,
+		Draft:       draft,
 	})
 	if err != nil {
 		slog.Warn("Error adding page to index", "page", name, "error", err, "index", opts.Index.GetName())
@@ -145,7 +150,7 @@ func handler(h *server.Hubro, index *index.Index) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slug := strings.TrimPrefix(r.URL.Path, "/")
 		entry := index.GetEntryBySlug(slug)
-		if entry != nil {
+		if entry != nil && !entry.Draft {
 			h.Render(w, r, "page", entry)
 			return
 		} else {
