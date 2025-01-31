@@ -30,6 +30,9 @@ func TagCloudInit(idx *index.Index) {
 func tagCloudMap(idx *index.Index) map[string]int {
 	tagCloud := make(map[string]int)
 	for _, entry := range idx.GetEntries() {
+		if !entry.Visible {
+			continue
+		}
 		for _, tag := range entry.Tags {
 			tagCloud[tag]++
 		}
