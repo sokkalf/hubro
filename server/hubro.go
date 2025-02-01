@@ -311,13 +311,6 @@ func (h *Hubro) testHandler(w http.ResponseWriter, r *http.Request) {
 	h.Render(w, r, "test", nil)
 }
 
-// pingHandler is a simple route that returns "Pong!" text.
-// We set an HTMX response header ("HX-Trigger") to demonstrate sending events back to the client.
-func (h *Hubro) pingHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("HX-Trigger", "pongReceived")
-	fmt.Fprintln(w, `<h1 class="text-2xl">Pong!</h1>`)
-}
-
 func (h *Hubro) ErrorHandler(w http.ResponseWriter, r *http.Request, status int, message *string) {
 	w.WriteHeader(status)
 	errorTemplate := fmt.Sprintf("errors/%d", status)
@@ -437,7 +430,6 @@ func NewHubro(config Config) *Hubro {
 		h.initVendorDir(config.VendorDir)
 	}()
 	h.Mux.HandleFunc("/", h.indexHandler)
-	h.Mux.HandleFunc("GET /ping", h.pingHandler)
 	h.Mux.HandleFunc("GET /test", h.testHandler)
 	return h
 }
