@@ -5,6 +5,9 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+
+	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 type HubroConfig struct {
@@ -27,8 +30,11 @@ type HubroConfig struct {
 	Version             string
 	Environment         string
 	GelfEndpoint        *string
+	SeqEndpoint         *string
+	SeqAPIKey           *string
 	AdminEnabled        bool
 	AdminPassword       string
+	Tracer              trace.Tracer
 }
 
 var Config *HubroConfig
@@ -52,6 +58,7 @@ func Init() {
 		Version:             "0.0.1-dev",
 		Environment:         "development",
 		GelfEndpoint:        nil,
+		Tracer:              noop.NewTracerProvider().Tracer("hubro"),
 	}
 
 	if baseURL, ok := os.LookupEnv("HUBRO_BASE_URL"); ok {
@@ -125,6 +132,12 @@ func Init() {
 	}
 	if gelfEndpoint, ok := os.LookupEnv("HUBRO_GELF_ENDPOINT"); ok {
 		config.GelfEndpoint = &gelfEndpoint
+	}
+	if seqEndpoint, ok := os.LookupEnv("HUBRO_SEQ_ENDPOINT"); ok {
+		config.SeqEndpoint = &seqEndpoint
+	}
+	if seqAPIKey, ok := os.LookupEnv("HUBRO_SEQ_API_KEY"); ok {
+		config.SeqAPIKey = &seqAPIKey
 	}
 	if userStaticDir, ok := os.LookupEnv("HUBRO_USERFILES_DIR"); ok {
 		config.UserStaticDir = userStaticDir

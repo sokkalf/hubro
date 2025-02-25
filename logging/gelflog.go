@@ -21,7 +21,7 @@ func replaceDuration(groups []string, attr slog.Attr) slog.Attr {
 	return attr
 }
 
-func InitGelfLog(logLevel slog.Level, gelfEndpoint string) {
+func InitGelfLog(logLevel slog.Level, gelfEndpoint string) (closeFunc func()) {
 	gelfWriter, err := gelf.NewWriter(gelfEndpoint)
 	if err != nil {
 		slog.Error("Error creating GELF writer", "Error", err)
@@ -37,4 +37,8 @@ func InitGelfLog(logLevel slog.Level, gelfEndpoint string) {
 	slog.SetDefault(logger.With("appname", "hubro").
 		With("appversion", config.Config.Version).
 		With("environment", config.Config.Environment))
+
+	return func() {
+		gelfWriter.Close()
+	}
 }

@@ -2,6 +2,8 @@ package page
 
 import (
 	"bytes"
+	"context"
+	"fmt"
 	"html/template"
 	"io/fs"
 	"log/slog"
@@ -15,7 +17,10 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
+	"github.com/sokkalf/hubro/config"
 	"github.com/sokkalf/hubro/index"
 	"github.com/sokkalf/hubro/server"
 	"github.com/sokkalf/hubro/utils"
@@ -23,6 +28,7 @@ import (
 
 type PageOptions struct {
 	Index    *index.Index
+	Ctx      context.Context
 }
 type indexedPage struct {
 	path    string
@@ -161,7 +167,10 @@ func handler(h *server.Hubro, index *index.Index) http.HandlerFunc {
 	}
 }
 
-func scanMarkdownFiles(prefix string, opts PageOptions) (filesScanned, numNew, numUpdated, numDeleted int) {
+func scanMarkdownFiles(ctx context.Context, prefix string, opts PageOptions) (filesScanned, numNew, numUpdated, numDeleted int) {
+	tr := config.Config.Tracer
+	spanCtx, span := tr.Start(ctx, "Scanning markdown files")
+	defer span.End()
 	mdMutex.Lock()
 	if md == nil {
 		md = goldmark.New(
@@ -173,15 +182,16 @@ func scanMarkdownFiles(prefix string, opts PageOptions) (filesScanned, numNew, n
 	mdMutex.Unlock()
 	filesScannedList := make([]string, 0)
 	fs.WalkDir(opts.Index.FilesDir, ".", func(path string, d fs.DirEntry, err error) error {
+		spanCtx, span := tr.Start(spanCtx, "Scanning file")
 		if !d.IsDir() && strings.HasSuffix(path, ".md") {
 			fi, err := d.Info()
 			if err != nil {
-				slog.Error("Error getting file info", "file", path, "error", err)
+				slog.ErrorContext(spanCtx, "Error getting file info", "file", path, "error", err)
 				return err
 			}
 			indexedPagesMutex.Lock()
 			if indexedPages[opts.Index] == nil {
-				slog.Debug("Initializing indexed pages", "index", opts.Index.GetName())
+				slog.DebugContext(spanCtx, "Initializing indexed pages", "index", opts.Index.GetName())
 				indexedPages[opts.Index] = make([]indexedPage, 0)
 			}
 			modTime := fi.ModTime()
@@ -199,8 +209,12 @@ func scanMarkdownFiles(prefix string, opts PageOptions) (filesScanned, numNew, n
 			if !alreadyIndexed {
 				err := parse(prefix, md, path, opts, isUpdate)
 				if err != nil {
-					slog.Error("Error parsing page", "page", path, "error", err)
+					slog.ErrorContext(spanCtx,"Error parsing page", "page", path, "error", err)
 				} else {
+					span.AddEvent("Scanned page "+ path, trace.WithAttributes(
+						attribute.String("page", path),
+						attribute.Bool("update", isUpdate),
+						attribute.String("index", opts.Index.GetName())))
 					if !isUpdate {
 						indexedPagesMutex.Lock()
 						indexedPages[opts.Index] = append(indexedPages[opts.Index], idxVal)
@@ -222,6 +236,7 @@ func scanMarkdownFiles(prefix string, opts PageOptions) (filesScanned, numNew, n
 			}
 			filesScannedList = append(filesScannedList, path)
 		}
+		span.End()
 		return nil
 	})
 	deletedFiles := make([]string, 0)
@@ -249,6 +264,7 @@ func scanMarkdownFiles(prefix string, opts PageOptions) (filesScanned, numNew, n
 		filesScanned++
 	}
 	indexedPagesMutex.Unlock()
+	span.AddEvent(fmt.Sprintf("Scanned %d files in index %s", filesScanned, opts.Index.GetName()))
 
 	return filesScanned, numNew, numUpdated, numDeleted
 }
@@ -272,10 +288,12 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 	if !ok {
 		slog.Error("Invalid options for page module")
 	}
-	scanMarkdownFiles(prefix, opts)
+	ctx := opts.Ctx
+
+	scanMarkdownFiles(ctx, prefix, opts)
 	opts.Index.Sort()
 	mux.HandleFunc("/", handler(h, opts.Index))
-	slog.Info("Registered pages", "duration", time.Since(start))
+	slog.InfoContext(ctx, "Registered pages", "duration", time.Since(start))
 
 	go func() {
 		msgChan := opts.Index.MsgBroker.Subscribe()
@@ -283,7 +301,7 @@ func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interf
 			switch <-msgChan {
 			case index.Scanned:
 				start := time.Now()
-				n, nNew, nUpdated, nDeleted := scanMarkdownFiles(prefix, opts)
+				n, nNew, nUpdated, nDeleted := scanMarkdownFiles(context.Background(), prefix, opts)
 				if n > 0 {
 					slog.Info("Found new or updated pages", "index", opts.Index.GetName(),
 						"new", nNew, "updated", nUpdated, "deleted", nDeleted, "duration", time.Since(start))
