@@ -18,6 +18,7 @@ func InitSeqLog(logLevel slog.Level, seqEndpoint string, seqAPIKey string) (clos
 		slogseq.WithFlushInterval(2 * time.Second),
 		slogseq.WithBatchSize(100),
 		slogseq.WithHandlerOptions(opts),
+		slogseq.WithWorkers(2),
 	)
 
 	textLogger := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})

@@ -11,7 +11,7 @@ require (
 	github.com/lmittmann/tint v1.0.7
 	github.com/samber/slog-graylog/v2 v2.7.3
 	github.com/samber/slog-multi v1.4.0
-	github.com/sokkalf/slog-seq v0.2.1
+	github.com/sokkalf/slog-seq v0.3.0
 	github.com/yuin/goldmark v1.7.8
 	github.com/yuin/goldmark-meta v1.1.0
 	go.opentelemetry.io/otel v1.34.0
