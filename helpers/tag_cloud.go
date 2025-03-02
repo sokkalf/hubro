@@ -96,7 +96,7 @@ func GenerateTagCloud(idx *index.Index) template.HTML {
 
 	tagToggle := `
 <div class="tag-cloud-toggle text-sm">
-	<a href="#" onclick="document.querySelectorAll('.tag-cloud > .hidden').forEach(el => el.classList.remove('hidden')); this.remove();">
+	<a class="dark:text-indigo-300 text-indigo-400" href="#" onclick="document.querySelectorAll('.tag-cloud > .hidden').forEach(el => el.classList.remove('hidden')); this.remove();">
 	  Show all tags
 	</a>
 </div>
