@@ -171,15 +171,6 @@ func scanMarkdownFiles(ctx context.Context, prefix string, opts PageOptions) (fi
 	tr := config.Config.Tracer
 	spanCtx, span := tr.Start(ctx, "Scanning markdown files")
 	defer span.End()
-	mdMutex.Lock()
-	if md == nil {
-		md = goldmark.New(
-			goldmark.WithExtensions(extension.GFM, meta.Meta),
-			goldmark.WithParserOptions(parser.WithAutoHeadingID()),
-			goldmark.WithRendererOptions(html.WithUnsafe()),
-		)
-	}
-	mdMutex.Unlock()
 	filesScannedList := make([]string, 0)
 	fs.WalkDir(opts.Index.FilesDir, ".", func(path string, d fs.DirEntry, err error) error {
 		spanCtx, span := tr.Start(spanCtx, "Scanning file")
@@ -207,7 +198,7 @@ func scanMarkdownFiles(ctx context.Context, prefix string, opts PageOptions) (fi
 			idxVal := indexedPage{path: path, modTime: modTime}
 			indexedPagesMutex.Unlock()
 			if !alreadyIndexed {
-				err := parse(prefix, md, path, opts, isUpdate)
+				err := parse(prefix, GetMarkdownParser(), path, opts, isUpdate)
 				if err != nil {
 					slog.ErrorContext(spanCtx,"Error parsing page", "page", path, "error", err)
 				} else {
