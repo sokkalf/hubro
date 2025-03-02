@@ -60,10 +60,16 @@ func GenerateTagCloud(idx *index.Index) template.HTML {
 		return cssTextSizeClasses[((count)*len(cssTextSizeClasses))/max]
 	}
 
-	tagHTML := func(tag string, count int) string {
+	tagHTML := func(tag string, count, num int) string {
+		var class string
+		if num < 15 {
+			class = fmt.Sprintf("tag-%s %s", tag, cssTextSize(count))
+		} else {
+			class = fmt.Sprintf("tag-%s hidden %s", tag, cssTextSize(count))
+		}
 		return fmt.Sprintf(
 			`<span class="%s"><a data-hx-boost="true" href="%s?tag=%s">%s</a></span>%s`,
-			cssTextSize(count),
+			class,
 			config.Config.RootPath,
 			tag,
 			tag,
@@ -75,13 +81,28 @@ func GenerateTagCloud(idx *index.Index) template.HTML {
 	for tag := range tagCloud {
 		sortedTags = append(sortedTags, tag)
 	}
-	sort.Strings(sortedTags)
+	sort.Slice(sortedTags, func(i, j int) bool {
+		return tagCloud[sortedTags[i]] > tagCloud[sortedTags[j]]
+	})
 
-	tagCloudHTML := strings.Join(utils.Map(func(tag string) string {
-		return tagHTML(tag, tagCloud[tag])
-	}, sortedTags), "")
+	num := 0
+	tagCloudHTML := utils.Reduce(func(acc, t string) string {
+		num++
+		return acc + tagHTML(t, tagCloud[t], num)
+	}, "", sortedTags)
 
-	tmpl := template.HTML(tagCloudHTML)
+	splitHTML := strings.Split(tagCloudHTML, "\n")
+	sort.Strings(splitHTML)
+
+	tagToggle := `
+<div class="tag-cloud-toggle text-sm">
+	<a href="#" onclick="document.querySelectorAll('.tag-cloud > .hidden').forEach(el => el.classList.remove('hidden')); this.remove();">
+	  Show all tags
+	</a>
+</div>
+`
+
+	tmpl := template.HTML(strings.Join(splitHTML, "\n") + tagToggle)
 	globalCache.set(idx, &tmpl)
 	return tmpl
 }

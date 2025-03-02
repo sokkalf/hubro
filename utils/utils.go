@@ -41,3 +41,11 @@ func Reject[A any](f func(A) bool, arr []A) []A {
 		return !f(a)
 	}, arr)
 }
+
+func Reduce[A any, B any](f func(B, A) B, init B, arr []A) B {
+	res := init
+	for _, a := range arr {
+		res = f(res, a)
+	}
+	return res
+}
