@@ -3,9 +3,20 @@ package logging
 import (
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/sokkalf/hubro/config"
 )
+
+func replaceDuration(groups []string, attr slog.Attr) slog.Attr {
+	if attr.Key == "duration" {
+		if d, ok := attr.Value.Any().(time.Duration); ok {
+			ms := float64(d.Microseconds()) / 1000.0
+			attr.Value = slog.Float64Value(ms)
+		}
+	}
+	return attr
+}
 
 func InitLogger() func() {
 	env := config.Config.Environment
