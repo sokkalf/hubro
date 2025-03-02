@@ -266,9 +266,9 @@ draft: true
 	os.WriteFile(path, []byte(data), 0644)
 	slog.Info("File created", "file", path)
 	responses := map[string]interface{}{
-		"type": "created",
-		"id":   fileName,
-		"slug": utils.Slugify(title),
+		"type":  "created",
+		"id":    fileName,
+		"slug":  utils.Slugify(title),
 		"title": title,
 		"index": idxName,
 	}
@@ -277,8 +277,8 @@ draft: true
 
 func handleError(ctx context.Context, conn *websocket.Conn, msg string) {
 	responses := map[string]interface{}{
-		"type": "error",
-		"message":  msg,
+		"type":    "error",
+		"message": msg,
 	}
 	_ = writeJSON(ctx, conn, websocket.MessageText, responses)
 }

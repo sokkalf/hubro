@@ -27,8 +27,8 @@ import (
 )
 
 type PageOptions struct {
-	Index    *index.Index
-	Ctx      context.Context
+	Index *index.Index
+	Ctx   context.Context
 }
 type indexedPage struct {
 	path    string
@@ -200,9 +200,9 @@ func scanMarkdownFiles(ctx context.Context, prefix string, opts PageOptions) (fi
 			if !alreadyIndexed {
 				err := parse(prefix, GetMarkdownParser(), path, opts, isUpdate)
 				if err != nil {
-					slog.ErrorContext(spanCtx,"Error parsing page", "page", path, "error", err)
+					slog.ErrorContext(spanCtx, "Error parsing page", "page", path, "error", err)
 				} else {
-					span.AddEvent("Scanned page "+ path, trace.WithAttributes(
+					span.AddEvent("Scanned page "+path, trace.WithAttributes(
 						attribute.String("page", path),
 						attribute.Bool("update", isUpdate),
 						attribute.String("index", opts.Index.GetName())))

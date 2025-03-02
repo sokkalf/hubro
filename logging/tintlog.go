@@ -1,9 +1,9 @@
 package logging
 
 import (
+	"log/slog"
 	"os"
 	"time"
-	"log/slog"
 
 	"github.com/lmittmann/tint"
 )

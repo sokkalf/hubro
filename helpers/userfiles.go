@@ -12,6 +12,6 @@ func GetLogoImage() template.HTML {
 		return template.HTML(`<span class="text-6xl">🦉</span>`)
 	default:
 		return template.HTML(`<img src="` + config.Config.RootPath +
-			"userfiles/" +config.Config.LogoImage + `" alt="Logo" class="avatar">`)
+			"userfiles/" + config.Config.LogoImage + `" alt="Logo" class="avatar">`)
 	}
 }

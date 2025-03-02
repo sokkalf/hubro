@@ -25,11 +25,11 @@ func ExtendResponseWriter(w http.ResponseWriter) *CustomResponseWriter {
 
 // this is needed for WebSockets
 func (w *CustomResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-    hj, ok := w.responseWriter.(http.Hijacker)
-    if !ok {
-        return nil, nil, errors.New("underlying ResponseWriter does not implement http.Hijacker")
-    }
-    return hj.Hijack()
+	hj, ok := w.responseWriter.(http.Hijacker)
+	if !ok {
+		return nil, nil, errors.New("underlying ResponseWriter does not implement http.Hijacker")
+	}
+	return hj.Hijack()
 }
 
 func (w *CustomResponseWriter) Write(b []byte) (int, error) {

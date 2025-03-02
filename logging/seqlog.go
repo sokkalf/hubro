@@ -15,7 +15,7 @@ func InitSeqLog(logLevel slog.Level, seqEndpoint string, seqAPIKey string) (clos
 	opts := &slog.HandlerOptions{Level: logLevel, ReplaceAttr: replaceDuration, AddSource: true}
 	_, handler := slogseq.NewLogger(seqEndpoint,
 		slogseq.WithAPIKey(seqAPIKey),
-		slogseq.WithFlushInterval(2 * time.Second),
+		slogseq.WithFlushInterval(2*time.Second),
 		slogseq.WithBatchSize(100),
 		slogseq.WithHandlerOptions(opts),
 		slogseq.WithWorkers(2),

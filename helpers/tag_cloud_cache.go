@@ -8,8 +8,8 @@ import (
 )
 
 type tagCloudCache struct {
-	mu  sync.RWMutex
-	m   map[*index.Index]*template.HTML
+	mu sync.RWMutex
+	m  map[*index.Index]*template.HTML
 }
 
 var globalCache = &tagCloudCache{

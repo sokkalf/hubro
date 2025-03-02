@@ -42,7 +42,6 @@ func main() {
 	templateDir := os.DirFS("view/templates")
 	publicDir := os.DirFS("view/public")
 
-
 	cfg := server.Config{
 		RootPath:    config.Config.RootPath,
 		Port:        config.Config.Port,
@@ -92,11 +91,11 @@ func main() {
 	span.AddEvent("Searching for pages and blog entries")
 	wg := sync.WaitGroup{}
 	wg.Add(2)
-	go func () {
+	go func() {
 		defer wg.Done()
 		h.AddModule("/page", page.Register, page.PageOptions{Index: pageIndex, Ctx: spanCtx})
 	}()
-	go func () {
+	go func() {
 		defer wg.Done()
 		h.AddModule("/blog", page.Register, page.PageOptions{Index: blogIndex, Ctx: spanCtx})
 	}()
