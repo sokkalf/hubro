@@ -27,7 +27,7 @@ func InitSeqLog(logLevel slog.Level, seqEndpoint string, seqAPIKey string) (clos
 		With("appversion", config.Config.Version).
 		With("environment", config.Config.Environment))
 
-	spanProcessor := trace.NewSimpleSpanProcessor(&slogseq.LoggingSpanProcessor{Handler: handler})
+	spanProcessor := trace.NewBatchSpanProcessor(&slogseq.LoggingSpanProcessor{Handler: handler})
 	tp := trace.NewTracerProvider(trace.WithSpanProcessor(spanProcessor), trace.WithSampler(trace.AlwaysSample()))
 	config.Config.Tracer = tp.Tracer("hubro")
 	return func() {
