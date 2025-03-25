@@ -6,7 +6,7 @@ import (
 	"github.com/sokkalf/hubro/server"
 )
 
-func Register(prefix string, h *server.Hubro, mux *http.ServeMux, opts interface{}) {
+func Register(prefix string, h *server.Hubro, mux *http.ServeMux, opts any) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			w.WriteHeader(http.StatusMethodNotAllowed)

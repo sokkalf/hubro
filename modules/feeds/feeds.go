@@ -57,7 +57,7 @@ func getFeedFromIndex(index *index.Index) *gorillafeeds.Feed {
 	}
 
 	feedItems := []*gorillafeeds.Item{}
-	for i, _ := range index.GetEntries() {
+	for i := range index.GetEntries() {
 		var summary string
 		if index.GetEntries()[i].Summary != nil {
 			summary = string(*index.GetEntries()[i].Summary)
@@ -78,7 +78,7 @@ func getFeedFromIndex(index *index.Index) *gorillafeeds.Feed {
 	return feed
 }
 
-func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
+func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options any) {
 	start := time.Now()
 	index := options.(*index.Index)
 	feeds := InitFeeds(index)

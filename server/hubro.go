@@ -40,7 +40,7 @@ type Hubro struct {
 	publicDir   fs.FS
 }
 
-type HubroModule func(string, *Hubro, *http.ServeMux, interface{})
+type HubroModule func(string, *Hubro, *http.ServeMux, any)
 
 const (
 	rootLayout           = "app"
@@ -65,7 +65,7 @@ func (h *Hubro) Use(m Middleware) {
 	h.middlewares = append(h.middlewares, m)
 }
 
-func (h *Hubro) AddModule(prefix string, module HubroModule, options interface{}) {
+func (h *Hubro) AddModule(prefix string, module HubroModule, options any) {
 	h.createSubMux(prefix, module, options)
 }
 
@@ -81,7 +81,7 @@ func (h *Hubro) GetHandler() http.Handler {
 	return h.handlerWithMiddlewares(h.Mux)
 }
 
-func (h *Hubro) createSubMux(prefix string, module HubroModule, options interface{}) *http.ServeMux {
+func (h *Hubro) createSubMux(prefix string, module HubroModule, options any) *http.ServeMux {
 	var mux *http.ServeMux
 	if prefix == "" || prefix == "/" {
 		prefix = "" // strip trailing slash if present
@@ -334,10 +334,10 @@ func (h *Hubro) RenderWithLayout(
 	r *http.Request,
 	layoutName string,
 	templateName string,
-	data interface{}) {
+	data any) {
 
 	if data == nil {
-		data = map[string]interface{}{}
+		data = map[string]any{}
 	}
 	clone, err := h.Templates.Clone()
 	if err != nil {
@@ -375,9 +375,9 @@ func (h *Hubro) RenderWithLayout(
 	}
 }
 
-func (h *Hubro) RenderWithoutLayout(w http.ResponseWriter, r *http.Request, templateName string, data interface{}) {
+func (h *Hubro) RenderWithoutLayout(w http.ResponseWriter, r *http.Request, templateName string, data any) {
 	if data == nil {
-		data = map[string]interface{}{}
+		data = map[string]any{}
 	}
 	clone, err := h.Templates.Clone()
 	if err != nil {
@@ -392,7 +392,7 @@ func (h *Hubro) RenderWithoutLayout(w http.ResponseWriter, r *http.Request, temp
 	}
 }
 
-func (h *Hubro) Render(w http.ResponseWriter, r *http.Request, templateName string, data interface{}) {
+func (h *Hubro) Render(w http.ResponseWriter, r *http.Request, templateName string, data any) {
 	h.RenderWithLayout(w, r, rootLayout, templateName, data)
 }
 

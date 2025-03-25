@@ -18,24 +18,24 @@ type Indices map[string]*Index
 var indices Indices
 
 type IndexEntry struct {
-	Id          string                 `json:"id"`
-	Slug        string                 `json:"slug"`
-	Title       string                 `json:"title"`
-	ShortTitle  string                 `json:"shortTitle"`
-	Author      string                 `json:"author"`
-	Path        string                 `json:"path"`
-	Date        time.Time              `json:"date"`
-	SortOrder   int                    `json:"sortOrder"`
-	Metadata    map[string]interface{} `json:"metadata"`
-	Visible     bool                   `json:"visible"`
-	HideAuthor  bool                   `json:"hideAuthor"`
-	HideTitle   bool                   `json:"hideTitle"`
-	Tags        []string               `json:"tags"`
-	Summary     *template.HTML         `json:"summary"`
-	Body        *template.HTML         `json:"body"`
-	Description string                 `json:"description"`
-	FileName    string                 `json:"fileName"`
-	Draft       bool                   `json:"draft"`
+	Id          string         `json:"id"`
+	Slug        string         `json:"slug"`
+	Title       string         `json:"title"`
+	ShortTitle  string         `json:"shortTitle"`
+	Author      string         `json:"author"`
+	Path        string         `json:"path"`
+	Date        time.Time      `json:"date"`
+	SortOrder   int            `json:"sortOrder"`
+	Metadata    map[string]any `json:"metadata"`
+	Visible     bool           `json:"visible"`
+	HideAuthor  bool           `json:"hideAuthor"`
+	HideTitle   bool           `json:"hideTitle"`
+	Tags        []string       `json:"tags"`
+	Summary     *template.HTML `json:"summary"`
+	Body        *template.HTML `json:"body"`
+	Description string         `json:"description"`
+	FileName    string         `json:"fileName"`
+	Draft       bool           `json:"draft"`
 }
 
 type Message int

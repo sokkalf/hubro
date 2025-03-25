@@ -17,7 +17,7 @@ type PathRoutes struct {
 	Routes []Route `json:"routes"`
 }
 
-func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
+func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options any) {
 	routes := options.(PathRoutes)
 	for _, route := range routes.Routes {
 		slog.Info("Registering redirect", "oldPath", prefix+route.OldPath, "newPath", route.NewPath)

@@ -21,7 +21,7 @@ import (
 	"github.com/yuin/goldmark/parser"
 )
 
-func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
+func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options any) {
 	slog.Info("Registering admin module")
 
 	mux.Handle("/", basicAuth(adminIndexHandler(h)))
@@ -42,7 +42,7 @@ func basicAuth(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func renderMarkdown(markdown []byte) ([]byte, map[string]interface{}, error) {
+func renderMarkdown(markdown []byte) ([]byte, map[string]any, error) {
 	md := page.GetMarkdownParser()
 	var buf bytes.Buffer
 	context := parser.NewContext()
@@ -116,7 +116,7 @@ func adminEditHandler(h *server.Hubro) http.HandlerFunc {
 	}
 }
 
-func adminWebSocketHandler(h *server.Hubro) http.HandlerFunc {
+func adminWebSocketHandler(_ *server.Hubro) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		conn, err := websocket.Accept(w, r, nil)
 		conn.SetReadLimit(256 * 1024)
@@ -134,7 +134,7 @@ func adminWebSocketHandler(h *server.Hubro) http.HandlerFunc {
 				return
 			}
 
-			var msg map[string]interface{}
+			var msg map[string]any
 			if err := json.Unmarshal(rawMsg, &msg); err != nil {
 				slog.Error("Invalid JSON message", "error", err)
 				return
@@ -160,14 +160,14 @@ func adminWebSocketHandler(h *server.Hubro) http.HandlerFunc {
 	}
 }
 
-func handleMarkdownMessage(ctx context.Context, conn *websocket.Conn, msgType websocket.MessageType, msg map[string]interface{}) {
+func handleMarkdownMessage(ctx context.Context, conn *websocket.Conn, msgType websocket.MessageType, msg map[string]any) {
 	content, _ := msg["content"].(string)
 	rendered, metaData, err := renderMarkdown([]byte(content))
 	if err != nil {
 		slog.Error("Error rendering markdown", "error", err)
 		return
 	}
-	responses := map[string]interface{}{
+	responses := map[string]any{
 		"type":    "markdown",
 		"content": string(rendered),
 		"id":      msg["id"],
@@ -176,7 +176,7 @@ func handleMarkdownMessage(ctx context.Context, conn *websocket.Conn, msgType we
 	_ = writeJSON(ctx, conn, msgType, responses)
 }
 
-func handleLoadMessage(ctx context.Context, conn *websocket.Conn, msgType websocket.MessageType, msg map[string]interface{}) {
+func handleLoadMessage(ctx context.Context, conn *websocket.Conn, msgType websocket.MessageType, msg map[string]any) {
 	fileSlug, _ := msg["id"].(string)
 	idxName, _ := msg["idx"].(string)
 
@@ -198,7 +198,7 @@ func handleLoadMessage(ctx context.Context, conn *websocket.Conn, msgType websoc
 		return
 	}
 
-	responses := map[string]interface{}{
+	responses := map[string]any{
 		"type":    "filecontent",
 		"content": string(content),
 		"id":      entry.FileName,
@@ -206,7 +206,7 @@ func handleLoadMessage(ctx context.Context, conn *websocket.Conn, msgType websoc
 	_ = writeJSON(ctx, conn, msgType, responses)
 }
 
-func handleSaveMessage(ctx context.Context, conn *websocket.Conn, msg map[string]interface{}) {
+func handleSaveMessage(ctx context.Context, conn *websocket.Conn, msg map[string]any) {
 	fileName, _ := msg["id"].(string)
 	content, _ := msg["content"].(string)
 	idxName, _ := msg["idx"].(string)
@@ -230,14 +230,14 @@ func handleSaveMessage(ctx context.Context, conn *websocket.Conn, msg map[string
 	}
 
 	slog.Info("File saved", "file", path)
-	responses := map[string]interface{}{
+	responses := map[string]any{
 		"type": "saved",
 		"id":   fileName,
 	}
 	_ = writeJSON(ctx, conn, websocket.MessageText, responses)
 }
 
-func handleCreateMessage(ctx context.Context, conn *websocket.Conn, msg map[string]interface{}) {
+func handleCreateMessage(ctx context.Context, conn *websocket.Conn, msg map[string]any) {
 	idxName, _ := msg["index"].(string)
 	idx, err := getIndexByName(idxName)
 	if err != nil {
@@ -265,7 +265,7 @@ draft: true
 
 	os.WriteFile(path, []byte(data), 0644)
 	slog.Info("File created", "file", path)
-	responses := map[string]interface{}{
+	responses := map[string]any{
 		"type":  "created",
 		"id":    fileName,
 		"slug":  utils.Slugify(title),
@@ -276,7 +276,7 @@ draft: true
 }
 
 func handleError(ctx context.Context, conn *websocket.Conn, msg string) {
-	responses := map[string]interface{}{
+	responses := map[string]any{
 		"type":    "error",
 		"message": msg,
 	}
@@ -294,7 +294,7 @@ func getIndexByName(name string) (*index.Index, error) {
 	return idx, nil
 }
 
-func writeJSON(ctx context.Context, conn *websocket.Conn, msgType websocket.MessageType, v interface{}) error {
+func writeJSON(ctx context.Context, conn *websocket.Conn, msgType websocket.MessageType, v any) error {
 	data, err := json.Marshal(v)
 	if err != nil {
 		slog.Error("Error marshalling JSON", "error", err)

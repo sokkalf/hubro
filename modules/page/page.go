@@ -24,6 +24,7 @@ import (
 	"github.com/sokkalf/hubro/index"
 	"github.com/sokkalf/hubro/server"
 	"github.com/sokkalf/hubro/utils"
+	"slices"
 )
 
 type PageOptions struct {
@@ -40,7 +41,7 @@ var mdMutex sync.Mutex
 var indexedPages = make(map[*index.Index][]indexedPage)
 var indexedPagesMutex sync.RWMutex
 
-func getOrDefault[T any](m map[string]interface{}, key string, defaultVal T) T {
+func getOrDefault[T any](m map[string]any, key string, defaultVal T) T {
 	raw, ok := m[key]
 	if !ok {
 		return defaultVal
@@ -95,7 +96,7 @@ func parse(prefix string, md goldmark.Markdown, path string, opts PageOptions, i
 
 	if t, ok := metaData["tags"]; ok {
 		tags = make([]string, 0)
-		for _, tag := range t.([]interface{}) {
+		for _, tag := range t.([]any) {
 			tags = append(tags, tag.(string))
 		}
 		delete(metaData, "tags")
@@ -248,7 +249,7 @@ func scanMarkdownFiles(ctx context.Context, prefix string, opts PageOptions) (fi
 		opts.Index.DeleteEntry(f)
 		for i, p := range indexedPages[opts.Index] {
 			if p.path == f {
-				indexedPages[opts.Index] = append(indexedPages[opts.Index][:i], indexedPages[opts.Index][i+1:]...)
+				indexedPages[opts.Index] = slices.Delete(indexedPages[opts.Index], i, i+1)
 				numDeleted++
 			}
 		}
@@ -273,7 +274,7 @@ func GetMarkdownParser() goldmark.Markdown {
 	return md
 }
 
-func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
+func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options any) {
 	start := time.Now()
 	opts, ok := options.(PageOptions)
 	if !ok {
