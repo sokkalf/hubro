@@ -18,11 +18,11 @@ func pageIndex(h *server.Hubro, entries []index.IndexEntry) func(http.ResponseWr
 	}
 }
 
-func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options interface{}) {
+func Register(prefix string, h *server.Hubro, mux *http.ServeMux, options any) {
 	indices := options.([]*index.Index)
 
 	slog.Info("Registering API", "prefix", prefix)
-	for i, _ := range indices {
+	for i := range indices {
 		indices[i].RLock()
 		endpoint := "/" + indices[i].GetName() + "/index"
 		mux.HandleFunc("GET "+endpoint, pageIndex(h, indices[i].GetEntries()))
