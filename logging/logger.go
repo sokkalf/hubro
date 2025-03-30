@@ -21,9 +21,7 @@ func replaceDuration(groups []string, attr slog.Attr) slog.Attr {
 func InitLogger() func() {
 	env := config.Config.Environment
 	if env != "development" {
-		if config.Config.GelfEndpoint != nil {
-			return InitGelfLog(slog.LevelInfo, *config.Config.GelfEndpoint)
-		} else if config.Config.SeqEndpoint != nil {
+		if config.Config.SeqEndpoint != nil {
 			return InitSeqLog(slog.LevelInfo, *config.Config.SeqEndpoint, *config.Config.SeqAPIKey)
 		} else {
 			slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})))
