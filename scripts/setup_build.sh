@@ -11,7 +11,7 @@ if ! test -f /buildtools/esbuild ; then
 	mkdir -p /buildtools
 	echo "Downloading esbuild"
 	mkdir -p /tmp/bin/
-	wget "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.24.1.tgz" -O /tmp/esbuild.tgz
+	wget "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.25.3.tgz" -O /tmp/esbuild.tgz
 	tar -xzf /tmp/esbuild.tgz -C /tmp/bin/
 	mv /tmp/bin/package/bin/esbuild /buildtools/esbuild
 	rm -rf /tmp/*
