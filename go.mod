@@ -7,7 +7,7 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gorilla/feeds v1.2.0
 	github.com/gosimple/slug v1.15.0
-	github.com/lmittmann/tint v1.0.7
+	github.com/lmittmann/tint v1.1.0
 	github.com/samber/slog-multi v1.4.0
 	github.com/sokkalf/slog-seq v0.4.1
 	github.com/yuin/goldmark v1.7.12
