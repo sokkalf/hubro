@@ -9,7 +9,7 @@ require (
 	github.com/gosimple/slug v1.15.0
 	github.com/lmittmann/tint v1.1.1
 	github.com/samber/slog-multi v1.4.0
-	github.com/sokkalf/slog-seq v0.4.1
+	github.com/sokkalf/slog-seq v0.4.2
 	github.com/yuin/goldmark v1.7.12
 	github.com/yuin/goldmark-meta v1.1.0
 	go.opentelemetry.io/otel v1.36.0
