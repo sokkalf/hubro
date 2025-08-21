@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine AS base
+FROM golang:1.25-alpine AS base
 RUN apk add gcompat build-base
 COPY scripts/setup_build.sh /scripts/setup_build.sh
 RUN /scripts/setup_build.sh
