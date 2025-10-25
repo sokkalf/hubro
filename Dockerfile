@@ -12,7 +12,7 @@ RUN /buildtools/tailwindcss-musl -i view/assets/css/app.css -m -o minified_app.c
 RUN /buildtools/esbuild view/assets/js/app.js --minify --target=es2017 --bundle --outfile=minified_app.js
 RUN go build -ldflags="-s -w -X main.Version=$REVISION" -o /app/tmp/hubro
 
-FROM alpine:3.21 AS prod
+FROM alpine:3.22 AS prod
 RUN addgroup -S hubro && adduser -S hubro -G hubro
 USER hubro
 WORKDIR /app
