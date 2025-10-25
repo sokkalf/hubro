@@ -11,6 +11,7 @@ import (
 
 	pagesAPI "github.com/sokkalf/hubro/api/pages"
 	"github.com/sokkalf/hubro/config"
+	"github.com/sokkalf/hubro/gzip"
 	"github.com/sokkalf/hubro/helpers"
 	"github.com/sokkalf/hubro/index"
 	"github.com/sokkalf/hubro/logging"
@@ -53,6 +54,7 @@ func main() {
 	h := server.NewHubro(cfg)
 	span.AddEvent("Initializing middleware")
 	h.Use(logging.LogMiddleware())
+	h.Use(gzip.GzipMiddleware())
 	span.End()
 	spanCtx, span = tr.Start(spanCtx, "module registration")
 	span.AddEvent("Healthcheck module")
