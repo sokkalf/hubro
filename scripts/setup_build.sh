@@ -3,7 +3,7 @@
 if ! test -f /buildtools/tailwindcss-musl; then
 	mkdir -p /buildtools
 	echo "Downloading Tailwind CLI (musl)"
-	wget https://github.com/tailwindlabs/tailwindcss/releases/download/v4.0.12/tailwindcss-linux-x64-musl -O /buildtools/tailwindcss-musl
+	wget "https://github.com/tailwindlabs/tailwindcss/releases/download/v4.1.16/tailwindcss-linux-x64-musl" -O /buildtools/tailwindcss-musl
 	chmod +x /buildtools/tailwindcss-musl
 fi
 

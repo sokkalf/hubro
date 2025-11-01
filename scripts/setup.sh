@@ -5,7 +5,7 @@
 if ! test -f bin/tailwindcss ; then
 	mkdir -p bin
 	echo "Downloading Tailwind CLI"
-	wget https://github.com/tailwindlabs/tailwindcss/releases/download/v4.0.12/tailwindcss-linux-x64 -O bin/tailwindcss
+	wget "https://github.com/tailwindlabs/tailwindcss/releases/download/v4.1.16/tailwindcss-linux-x64" -O bin/tailwindcss
 	chmod +x bin/tailwindcss
 fi
 
