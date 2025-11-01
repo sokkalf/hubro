@@ -134,5 +134,8 @@ func main() {
 		}
 	}
 	span.End()
-	h.Start(start)
+	err = h.Start(start)
+	if err != nil {
+		slog.Error("Error starting Hubro", "error", err)
+	}
 }

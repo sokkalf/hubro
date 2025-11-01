@@ -434,9 +434,9 @@ func NewHubro(config Config) *Hubro {
 	return h
 }
 
-func (h *Hubro) Start(startTime time.Time) {
+func (h *Hubro) Start(startTime time.Time) error {
 	h.Server.Handler = h.GetHandler()
 	port := h.config.Port
 	slog.Info("Server started", "port", port, "rootPath", h.config.RootPath, "duration", time.Since(startTime))
-	http.ListenAndServe(fmt.Sprintf(":%d", port), h.Server.Handler)
+	return http.ListenAndServe(fmt.Sprintf(":%d", port), h.Server.Handler)
 }
